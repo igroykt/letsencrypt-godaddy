@@ -1,4 +1,4 @@
-# letsencrypt-godaddy
+# LetsEncrypt GoDaddy
 Приложение для выписки wildcard сертификатов посредством DNS challenge для Linux
 
 ## Зависимости
