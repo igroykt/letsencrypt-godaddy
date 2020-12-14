@@ -34,16 +34,12 @@ try:
 except Exception as err:
     logging.error(f"Account config error: {err}")
 
-#try:
-#    record = TXTRecord(name = f"_acme-challenge.{CERTBOT_DOMAIN}.", txt = CERTBOT_VALIDATION, ttl = TTL)
-#except Exception as err:
-#    logging.error(f"TXTRecord error: {err}")
-
 try:
-    #api.add_record(record, SERVICE_ID, CERTBOT_DOMAIN)
     client.add_record(CERTBOT_DOMAIN, {'data':CERTBOT_VALIDATION,'name':f'_acme-challenge.{CERTBOT_DOMAIN}','ttl':TTL, 'type':'TXT'})
 except Exception as err:
     logging.error(f"client.add_record error: {err}")
+    if "UNABLE_TO_AUTHENTICATE" in err:
+        sys.exit(1)
 
 resolver = dns.resolver.Resolver(configure = False)
 resolver.nameservers = ['8.8.8.8']
