@@ -43,13 +43,17 @@ except Exception as err:
         sys.exit(1)
 
 resolver = dns.resolver.Resolver(configure = False)
-resolver.nameservers = ['8.8.8.8']
+answers = dns.resolver.query(CERTBOT_DOMAIN, 'NS')
+for rdata in answers:
+    rdata = str(rdata)[:-1]
+    break
+resolver.nameservers = [rdata]
 
 n = 1
 while n <= RETRIES:
     try:
-        time.sleep(SLEEP)
         resolver.resolve(f'_acme-challenge.{CERTBOT_DOMAIN}', 'txt')
+        time.sleep(SLEEP)
         break
     except Exception as err:
         logging.error(f"resolver.resolve error: {err}")
