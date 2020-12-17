@@ -30,6 +30,6 @@ except Exception as err:
     logging.error(f"Account config error: {err}")
 
 try:
-    client.delete_records(CERTBOT_DOMAIN, name=f'_acme-challenge.{CERTBOT_DOMAIN}')
+    client.delete_records(CERTBOT_DOMAIN, name=f'_acme-challenge')
 except Exception as err:
     logging.error(f"client.delete_records error: {err}")
