@@ -42,23 +42,26 @@ except Exception as err:
     if "UNABLE_TO_AUTHENTICATE" in err:
         sys.exit(1)
 
-resolver = dns.resolver.Resolver(configure = False)
-answers = dns.resolver.query(CERTBOT_DOMAIN, 'NS')
-for rdata in answers:
-    rdata = str(rdata)[:-1]
-    break
-resolver.nameservers = [rdata]
+try:
+    resolver = dns.resolver.Resolver(configure = False)
+    answers = dns.resolver.resolve(CERTBOT_DOMAIN, 'NS')
+    for rdata in answers:
+        rdata = str(rdata)[:-1]
+        break
+    resolver.nameservers = [rdata]
+except Exception as err:
+    logging.error("resolver.resolve error: Could not get NS record.")
+    sys.exit(1)
 
 n = 1
 while n <= RETRIES:
     try:
         resolver.resolve(f'_acme-challenge.{CERTBOT_DOMAIN}', 'txt')
-        time.sleep(SLEEP)
-        break
+        #break
     except Exception as err:
         logging.error(f"resolver.resolve error: {err}")
         n += 1
-        pass
+        time.sleep(SLEEP)
 else:
     logging.error("resolver.resolve error: Could not find validation TXT record.")
     raise Exception("resolver.resolve error: Could not find validation TXT record.")
