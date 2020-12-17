@@ -56,12 +56,13 @@ except Exception as err:
 n = 1
 while n <= RETRIES:
     try:
+        time.sleep(SLEEP)
         resolver.resolve(f'_acme-challenge.{CERTBOT_DOMAIN}', 'txt')
-        #break
+        break
     except Exception as err:
         logging.error(f"resolver.resolve error: {err}")
         n += 1
-        time.sleep(SLEEP)
+        pass
 else:
     logging.error("resolver.resolve error: Could not find validation TXT record.")
     raise Exception("resolver.resolve error: Could not find validation TXT record.")
