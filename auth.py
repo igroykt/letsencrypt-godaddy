@@ -16,8 +16,9 @@ except Exception as err:
 
 API_KEY = os.getenv('GDKEY')
 API_SECRET = os.getenv('GDSECRET')
-TTL = config.get('GENERAL', 'TTL')
+TTL = int(config.get('GENERAL', 'TTL'))
 SLEEP = int(config.get('GENERAL', 'SLEEP'))
+RETRIES = int(config.get('GENERAL', 'RETRIES'))
 CERTBOT_DOMAIN = os.getenv('CERTBOT_DOMAIN')
 CERTBOT_VALIDATION = os.getenv('CERTBOT_VALIDATION')
 
@@ -35,7 +36,7 @@ except Exception as err:
     logging.error(f"Account config error: {err}")
 
 try:
-    client.add_record(CERTBOT_DOMAIN, {'data':CERTBOT_VALIDATION,'name':f'_acme-challenge.{CERTBOT_DOMAIN}','ttl':TTL, 'type':'TXT'})
+    client.add_record(CERTBOT_DOMAIN, {'data':CERTBOT_VALIDATION,'name':f'_acme-challenge','ttl':TTL, 'type':'TXT'})
 except Exception as err:
     logging.error(f"client.add_record error: {err}")
     if "UNABLE_TO_AUTHENTICATE" in err:
@@ -43,10 +44,17 @@ except Exception as err:
 
 resolver = dns.resolver.Resolver(configure = False)
 resolver.nameservers = ['8.8.8.8']
-while True:
+
+n = 1
+while n <= RETRIES:
     try:
         time.sleep(SLEEP)
         resolver.resolve(f'_acme-challenge.{CERTBOT_DOMAIN}', 'txt')
         break
-    except Exception:
+    except Exception as err:
+        logging.error(f"resolver.resolve error: {err}")
+        n += 1
         pass
+else:
+    logging.error("resolver.resolve error: Could not find validation TXT record.")
+    raise Exception("resolver.resolve error: Could not find validation TXT record.")
