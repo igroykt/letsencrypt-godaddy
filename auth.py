@@ -42,16 +42,8 @@ except Exception as err:
     if "UNABLE_TO_AUTHENTICATE" in err:
         sys.exit(1)
 
-try:
-    resolver = dns.resolver.Resolver(configure = False)
-    answers = dns.resolver.resolve(CERTBOT_DOMAIN, 'NS')
-    for rdata in answers:
-        rdata = str(rdata)[:-1]
-        break
-    resolver.nameservers = [rdata]
-except Exception as err:
-    logging.error("resolver.resolve error: Could not get NS record.")
-    sys.exit(1)
+resolver = dns.resolver.Resolver(configure = False)
+resolver.nameservers = [8.8.8.8]
 
 n = 1
 while n <= RETRIES:
