@@ -134,3 +134,4 @@ test.go
 auth.pyc
 clean.pyc
 main
+test.py
