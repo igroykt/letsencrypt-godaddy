@@ -43,7 +43,7 @@ except Exception as err:
         sys.exit(1)
 
 resolver = dns.resolver.Resolver(configure = False)
-resolver.nameservers = [8.8.8.8]
+resolver.nameservers = ['8.8.8.8']
 
 n = 1
 while n <= RETRIES:
