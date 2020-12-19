@@ -61,8 +61,25 @@ for current_domain in CERTBOT_ALL_DOMAINS:
             if "UNABLE_TO_AUTHENTICATE" in err:
                 sys.exit(1)
 
+def mainDomainTail(domain):
+    domain = domain.split(".")
+    domain = domain[len(domain)-2:]
+    tmp = []
+    for level in domain:
+        if "*" not in level:
+            tmp.append(level)
+    domain = '.'.join(tmp)
+    if domain:
+        return domain
+    return False
+
 resolver = dns.resolver.Resolver(configure = False)
-answers = dns.resolver.query(CERTBOT_DOMAIN, 'NS')
+if len(CERTBOT_DOMAIN.split(".")) > 2:
+    main_domain = mainDomainTail(CERTBOT_DOMAIN)
+else:
+    main_domain = CERTBOT_DOMAIN
+resolver = dns.resolver.Resolver(configure = False)
+answers = dns.resolver.resolve(main_domain, 'NS')
 for rdata in answers:
     rdata = str(rdata)[:-1]
     break
@@ -71,9 +88,11 @@ resolver.nameservers = [rdata]
 n = 1
 while n <= RETRIES:
     try:
+        results = resolver.resolve(f'_acme-challenge.{CERTBOT_DOMAIN}', 'txt')
+        for result in results:
+            if result:
+                break
         time.sleep(SLEEP)
-        resolver.resolve(f'_acme-challenge.{CERTBOT_DOMAIN}', 'txt')
-        break
     except Exception as err:
         logging.error(f"resolver.resolve error: {err}")
         n += 1
