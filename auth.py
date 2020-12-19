@@ -88,11 +88,9 @@ resolver.nameservers = [rdata]
 n = 1
 while n <= RETRIES:
     try:
-        results = resolver.resolve(f'_acme-challenge.{CERTBOT_DOMAIN}', 'txt')
-        for result in results:
-            if result:
-                break
         time.sleep(SLEEP)
+        results = resolver.resolve(f'_acme-challenge.{CERTBOT_DOMAIN}', 'txt')
+        break
     except Exception as err:
         logging.error(f"resolver.resolve error: {err}")
         n += 1
