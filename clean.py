@@ -15,7 +15,6 @@ except Exception as err:
 API_KEY = os.getenv('GDKEY')
 API_SECRET = os.getenv('GDSECRET')
 CERTBOT_DOMAIN = os.getenv('CERTBOT_DOMAIN')
-#CERTBOT_ALL_DOMAINS = os.getenv('CERTBOT_ALL_DOMAINS').split(",")
 
 LOG_FILE = script_dir + "/clean.log"
 
@@ -30,25 +29,17 @@ try:
 except Exception as err:
     logging.error(f"Account config error: {err}")
 
-def domainTail(domain):
-    domain = domain.split(".")
-    domain = domain[:len(domain)-2]
-    tmp = []
-    for level in domain:
-        if "*" not in level:
-            tmp.append(level)
-    domain = '.'.join(tmp)
-    if domain:
-        return domain
-    return False
+def findTXTID(data):
+    ids = []
+    for record in data:
+        if "_acme-challenge" in record['name']:
+            ids.append(record['name'])
+    return ids
 
-#for current_domain in CERTBOT_ALL_DOMAINS:
 try:
-    current_domain = current_domain.strip()
-    if len(current_domain.split(".")) > 2:
-        domain_tail = domainTail(current_domain)
-        if domain_tail:
-            client.delete_records(CERTBOT_DOMAIN, name=f'_acme-challenge.{domain_tail}')
-    client.delete_records(CERTBOT_DOMAIN, name=f'_acme-challenge')
+    records = client.get_records(CERTBOT_DOMAIN, record_type='TXT')
+    results = findTXTID(records)
+    for result in results:
+        client.delete_records(CERTBOT_DOMAIN, name=result)
 except Exception as err:
     logging.error(f"client.delete_records error: {err}")
