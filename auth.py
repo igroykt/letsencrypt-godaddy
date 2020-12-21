@@ -20,7 +20,6 @@ TTL = int(config.get('GENERAL', 'TTL'))
 SLEEP = int(config.get('GENERAL', 'SLEEP'))
 RETRIES = int(config.get('GENERAL', 'RETRIES'))
 CERTBOT_DOMAIN = os.getenv('CERTBOT_DOMAIN')
-#CERTBOT_ALL_DOMAINS = os.getenv('CERTBOT_ALL_DOMAINS').split(",")
 CERTBOT_VALIDATION = os.getenv('CERTBOT_VALIDATION')
 
 LOG_FILE = script_dir + "/auth.log"
@@ -48,15 +47,12 @@ def domainTail(domain):
         return domain
     return False
     
-#for current_domain in CERTBOT_ALL_DOMAINS:
 try:
-    #current_domain = current_domain.strip()
-    #if len(current_domain.split(".")) > 2:
     if len(CERTBOT_DOMAIN.split(".")) > 2:
-        domain_tail = domainTail(current_domain)
-        if domain_tail:
-            client.add_record(CERTBOT_DOMAIN, {'data':CERTBOT_VALIDATION,'name':f'_acme-challenge.{domain_tail}','ttl':TTL,'type':'TXT'})
-        client.add_record(CERTBOT_DOMAIN, {'data':CERTBOT_VALIDATION,'name':f'_acme-challenge','ttl':TTL, 'type':'TXT'})
+        domain_tail = domainTail(CERTBOT_DOMAIN)
+        client.add_record(CERTBOT_DOMAIN, {'data':CERTBOT_VALIDATION,'name':f'_acme-challenge.{domain_tail}','ttl':TTL,'type':'TXT'})
+    else:
+        client.add_record(CERTBOT_DOMAIN, {'data':CERTBOT_VALIDATION,'name':'_acme-challenge','ttl':TTL, 'type':'TXT'})
 except Exception as err:
     logging.error(f"client.add_record error: {err}")
     if "UNABLE_TO_AUTHENTICATE" in err:
@@ -81,21 +77,23 @@ else:
     main_domain = CERTBOT_DOMAIN
 resolver = dns.resolver.Resolver(configure = False)
 answers = dns.resolver.resolve(main_domain, 'NS')
+dns = []
 for rdata in answers:
     rdata = str(rdata)[:-1]
-    break
-resolver.nameservers = [rdata]
+    dns.append(rdata)
+dns.sort()
+resolver.nameservers = [dns[0]]
 
 n = 1
 while n <= RETRIES:
     try:
         time.sleep(SLEEP)
-        results = resolver.resolve(f'_acme-challenge.{CERTBOT_DOMAIN}', 'txt')
+        resolver.resolve(f'_acme-challenge.{CERTBOT_DOMAIN}', 'txt')
         break
     except Exception as err:
         logging.error(f"resolver.resolve error: {err}")
         n += 1
         pass
 else:
-    logging.error("resolver.resolve error: Could not find validation TXT record.")
-    raise Exception("resolver.resolve error: Could not find validation TXT record.")
+    logging.error(f"resolver.resolve error: Could not find validation TXT record for {CERTBOT_DOMAIN}")
+    raise Exception(f"resolver.resolve error: Could not find validation TXT record for {CERTBOT_DOMAIN}")
