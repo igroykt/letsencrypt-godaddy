@@ -116,31 +116,3 @@ is_resolved = resolveDomain(dns_ip_list)
 if not is_resolved:
     logging.error(f"resolver.resolve error: Could not find validation TXT record for {CERTBOT_DOMAIN}")
     raise Exception(f"resolver.resolve error: Could not find validation TXT record {CERTBOT_DOMAIN}")
-
-'''resolver = dns.resolver.Resolver(configure = False)
-if len(CERTBOT_DOMAIN.split(".")) > 2:
-    main_domain = mainDomainTail(CERTBOT_DOMAIN)
-else:
-    main_domain = CERTBOT_DOMAIN
-resolver = dns.resolver.Resolver(configure = False)
-answers = dns.resolver.resolve(main_domain, 'NS')
-dns = []
-for rdata in answers:
-    rdata = str(rdata)[:-1]
-    dns.append(rdata)
-dns.sort()
-resolver.nameservers = [dns[0]]
-
-n = 1
-while n <= RETRIES:
-    try:
-        time.sleep(SLEEP)
-        resolver.resolve(f'_acme-challenge.{CERTBOT_DOMAIN}', 'txt')
-        break
-    except Exception as err:
-        logging.error(f"resolver.resolve error: {err}")
-        n += 1
-        pass
-else:
-    logging.error(f"resolver.resolve error: Could not find validation TXT record for {CERTBOT_DOMAIN}")
-    raise Exception(f"resolver.resolve error: Could not find validation TXT record for {CERTBOT_DOMAIN}")'''
