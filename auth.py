@@ -70,7 +70,54 @@ def mainDomainTail(domain):
         return domain
     return False
 
-resolver = dns.resolver.Resolver(configure = False)
+def getDnsList():
+    dns_list = []
+    resolver = dns.resolver.Resolver(configure = False)
+    resolver.nameservers = ['8.8.8.8']
+    answers = dns.resolver.resolve(main_domain, 'NS')
+    for rdata in answers:
+        rdata = str(rdata)[:-1]
+        dns_list.append(rdata)
+    dns_list.sort()
+    return dns_list
+
+def genDnsList(dns_list):
+    new_dns_list = []
+    resolver = dns.resolver.Resolver(configure = False)
+    for item in dns_list:
+        answers = dns.resolver.resolve(item, 'A')
+        for rdata in answers:
+            rdata = str(rdata)
+            new_dns_list.append(rdata)
+    return new_dns_list
+
+def resolveDomain(dns_list):
+    time.sleep(SLEEP)
+    resolver = dns.resolver.Resolver(configure = False)
+    i = 1
+    for server in dns_list:
+        resolver.nameservers = [server]
+        try:
+            resolver.resolve(f'_acme-challenge.{CERTBOT_DOMAIN}', 'TXT')
+            return True
+        except dns.resolver.NXDOMAIN as err:
+            if i >= dns_size:
+                return False
+            i += 1
+            pass
+
+if len(CERTBOT_DOMAIN.split(".")) > 2:
+    main_domain = mainDomainTail(CERTBOT_DOMAIN)
+else:
+    main_domain = CERTBOT_DOMAIN
+dns_list = getDnsList()
+dns_ip_list = genDnsList(dns_list)
+is_resolved = resolveDomain(dns_ip_list)
+if not is_resolved:
+    logging.error(f"resolver.resolve error: Could not find validation TXT record for {CERTBOT_DOMAIN}")
+    raise Exception(f"resolver.resolve error: Could not find validation TXT record {CERTBOT_DOMAIN}")
+
+'''resolver = dns.resolver.Resolver(configure = False)
 if len(CERTBOT_DOMAIN.split(".")) > 2:
     main_domain = mainDomainTail(CERTBOT_DOMAIN)
 else:
@@ -96,4 +143,4 @@ while n <= RETRIES:
         pass
 else:
     logging.error(f"resolver.resolve error: Could not find validation TXT record for {CERTBOT_DOMAIN}")
-    raise Exception(f"resolver.resolve error: Could not find validation TXT record for {CERTBOT_DOMAIN}")
+    raise Exception(f"resolver.resolve error: Could not find validation TXT record for {CERTBOT_DOMAIN}")'''
