@@ -18,7 +18,6 @@ API_KEY = os.getenv('GDKEY')
 API_SECRET = os.getenv('GDSECRET')
 TTL = int(config.get('GENERAL', 'TTL'))
 SLEEP = int(config.get('GENERAL', 'SLEEP'))
-RETRIES = int(config.get('GENERAL', 'RETRIES'))
 CERTBOT_DOMAIN = os.getenv('CERTBOT_DOMAIN')
 CERTBOT_VALIDATION = os.getenv('CERTBOT_VALIDATION')
 
@@ -95,6 +94,7 @@ def resolveDomain(dns_list):
     time.sleep(SLEEP)
     resolver = dns.resolver.Resolver(configure = False)
     i = 1
+    dns_size = len(dns_list)
     for server in dns_list:
         resolver.nameservers = [server]
         try:
