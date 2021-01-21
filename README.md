@@ -29,7 +29,6 @@ APIKEY и APISECRET прописать в main.go в "Configuration section".
 | ADMIN_EMAIL   | E-mail администратора certbot                                          | None             |
 | TTL           | Время жизни TXT записей                                                | 600              |
 | SLEEP         | Время ожидания пока TXT запись подхватится публичными DNS серверами    | 120              |
-| RETRIES       | Количество попыток подтверждения TXT записи в DNS                      | 3                |
 | OS_SHELL      | Shell операционной системы                                             | /bin/bash        |
 | LE_CONFIG_DIR | Путь к директории для хранения конфигураций и сертификатов LetsEncrypt | /etc/letsencrypt |
 | PYTHON        | Путь к интерпретатору Python                                           | /usr/bin/python3 |
