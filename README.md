@@ -23,15 +23,16 @@ APIKEY и APISECRET прописать в main.go в "Configuration section".
 
 **[GENERAL]**
 
-| Function      | Description                                                            | Default value    |
-|---------------|------------------------------------------------------------------------|------------------|
-| ZONE          | Список доменных зон (разделенных запятыми)                             | None             |
-| ADMIN_EMAIL   | E-mail администратора certbot                                          | None             |
-| TTL           | Время жизни TXT записей                                                | 600              |
-| SLEEP         | Время ожидания пока TXT запись подхватится публичными DNS серверами    | 120              |
-| OS_SHELL      | Shell операционной системы                                             | /bin/bash        |
-| LE_CONFIG_DIR | Путь к директории для хранения конфигураций и сертификатов LetsEncrypt | /etc/letsencrypt |
-| PYTHON        | Путь к интерпретатору Python                                           | /usr/bin/python3 |
+| Function      | Description                                                            | Default value          |
+|---------------|------------------------------------------------------------------------|------------------------|
+| ZONE          | Список доменных зон (разделенных запятыми)                             | None                   |
+| ADMIN_EMAIL   | E-mail администратора certbot                                          | None                   |
+| TTL           | Время жизни TXT записей                                                | 600                    |
+| SLEEP         | Время ожидания пока TXT запись подхватится публичными DNS серверами    | 120                    |
+| OS_SHELL      | Shell операционной системы                                             | /bin/bash              |
+| LE_CONFIG_DIR | Путь к директории для хранения конфигураций и сертификатов LetsEncrypt | /etc/letsencrypt       |
+| PYTHON        | Путь к интерпретатору Python                                           | /usr/bin/python3       |
+| CERTBOT       | Путь к certbot                                                         | /usr/local/bin/certbot |
 
 LE_CONFIG_DIR полезен в том случае, когда для некоторых ресурсов надо выписывать сертификаты по http challenge, а некоторые по dns challenge. В таком случае для dns challenge можно указать путь скажем /etc/letsencrypt-dns, тогда будет создана эта директория и аккаунты, конфиги, сертификаты для dns challenge будут храниться там.
 
