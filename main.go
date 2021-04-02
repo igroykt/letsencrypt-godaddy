@@ -193,7 +193,7 @@ func main() {
 	PYTHON := cfg.Section("GENERAL").Key("PYTHON").String()
 	SHELL := cfg.Section("GENERAL").Key("OS_SHELL").String()
 	CONFIG_DIR := cfg.Section("GENERAL").Key("LE_CONFIG_DIR").String()
-	CERTBOT := cfg.Section("GENERAL").Key("CERTBOT").String
+	CERTBOT := cfg.Section("GENERAL").Key("CERTBOT").String()
 	WEBSERVERENABLED := cfg.Section("WEBSERVER").Key("ENABLED").MustBool()
 	TESTCONFIG := cfg.Section("WEBSERVER").Key("TEST_CONFIG").String()
 	RELOADCONFIG := cfg.Section("WEBSERVER").Key("RELOAD_CONFIG").String()
