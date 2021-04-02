@@ -59,7 +59,11 @@ except Exception as err:
 
 def mainDomainTail(domain):
     domain = domain.split(".")
-    domain = domain[len(domain)-2:]
+    #domain = domain[len(domain)-2:]
+    if "co.nz" in CERTBOT_DOMAIN:
+        domain = domain[len(domain)-3:]
+    else:
+        domain = domain[len(domain)-2:]
     tmp = []
     for level in domain:
         if "*" not in level:
