@@ -48,7 +48,7 @@ def domainTail(domain):
     
 try:
     if "co.nz" not in CERTBOT_DOMAIN:
-        if len(CERTBOT_DOMAIN.split(".")) > dots:
+        if len(CERTBOT_DOMAIN.split(".")) > 2:
             domain_tail = domainTail(CERTBOT_DOMAIN)
             if type(domain_tail) != type(False):
                 client.add_record(CERTBOT_DOMAIN, {'data':CERTBOT_VALIDATION,'name':f'_acme-challenge.{domain_tail}','ttl':TTL,'type':'TXT'})
