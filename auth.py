@@ -35,8 +35,9 @@ except Exception as err:
     logging.error(f"Account config error: {err}")
 
 def domainTail(domain):
+    dots = domain.count('.')
     domain = domain.split(".")
-    domain = domain[:len(domain)-2]
+    domain = domain[:len(domain)-dots]
     tmp = []
     for level in domain:
         if "*" not in level:
@@ -58,12 +59,9 @@ except Exception as err:
         sys.exit(1)
 
 def mainDomainTail(domain):
+    dots = domain.count('.')
     domain = domain.split(".")
-    #domain = domain[len(domain)-2:]
-    if "co.nz" in CERTBOT_DOMAIN:
-        domain = domain[len(domain)-3:]
-    else:
-        domain = domain[len(domain)-2:]
+    domain = domain[len(domain)-dots:]
     tmp = []
     for level in domain:
         if "*" not in level:
