@@ -35,9 +35,8 @@ except Exception as err:
     logging.error(f"Account config error: {err}")
 
 def domainTail(domain):
-    dots = domain.count('.')
     domain = domain.split(".")
-    domain = domain[:len(domain)-dots]
+    domain = domain[:len(domain)-2]
     tmp = []
     for level in domain:
         if "*" not in level:
@@ -48,10 +47,13 @@ def domainTail(domain):
     return False
     
 try:
-    dots = CERTBOT_DOMAIN.count('.')
-    if len(CERTBOT_DOMAIN.split(".")) > dots:
-        domain_tail = domainTail(CERTBOT_DOMAIN)
-        client.add_record(CERTBOT_DOMAIN, {'data':CERTBOT_VALIDATION,'name':f'_acme-challenge.{domain_tail}','ttl':TTL,'type':'TXT'})
+    if "co.nz" not in CERTBOT_DOMAIN:
+        if len(CERTBOT_DOMAIN.split(".")) > dots:
+            domain_tail = domainTail(CERTBOT_DOMAIN)
+            if type(domain_tail) != type(False):
+                client.add_record(CERTBOT_DOMAIN, {'data':CERTBOT_VALIDATION,'name':f'_acme-challenge.{domain_tail}','ttl':TTL,'type':'TXT'})
+            else:
+                client.add_record(CERTBOT_DOMAIN, {'data':CERTBOT_VALIDATION,'name':'_acme-challenge','ttl':TTL, 'type':'TXT'})
     else:
         client.add_record(CERTBOT_DOMAIN, {'data':CERTBOT_VALIDATION,'name':'_acme-challenge','ttl':TTL, 'type':'TXT'})
 except Exception as err:
@@ -60,9 +62,8 @@ except Exception as err:
         sys.exit(1)
 
 def mainDomainTail(domain):
-    dots = domain.count('.')
     domain = domain.split(".")
-    domain = domain[len(domain)-dots:]
+    domain = domain[len(domain)-2:]
     tmp = []
     for level in domain:
         if "*" not in level:
