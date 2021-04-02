@@ -48,7 +48,8 @@ def domainTail(domain):
     return False
     
 try:
-    if len(CERTBOT_DOMAIN.split(".")) > 2:
+    dots = CERTBOT_DOMAIN.count('.')
+    if len(CERTBOT_DOMAIN.split(".")) > dots:
         domain_tail = domainTail(CERTBOT_DOMAIN)
         client.add_record(CERTBOT_DOMAIN, {'data':CERTBOT_VALIDATION,'name':f'_acme-challenge.{domain_tail}','ttl':TTL,'type':'TXT'})
     else:
