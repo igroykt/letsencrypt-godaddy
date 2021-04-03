@@ -45,25 +45,11 @@ def domainTail(domain):
     if domain:
         return domain
     return False
-    
-try:
-    if "co.nz" not in CERTBOT_DOMAIN:
-        if len(CERTBOT_DOMAIN.split(".")) > 2:
-            domain_tail = domainTail(CERTBOT_DOMAIN)
-            if type(domain_tail) != type(False):
-                client.add_record(CERTBOT_DOMAIN, {'data':CERTBOT_VALIDATION,'name':f'_acme-challenge.{domain_tail}','ttl':TTL,'type':'TXT'})
-            else:
-                client.add_record(CERTBOT_DOMAIN, {'data':CERTBOT_VALIDATION,'name':'_acme-challenge','ttl':TTL, 'type':'TXT'})
-    else:
-        client.add_record(CERTBOT_DOMAIN, {'data':CERTBOT_VALIDATION,'name':'_acme-challenge','ttl':TTL, 'type':'TXT'})
-except Exception as err:
-    logging.error(f"client.add_record error: {err}")
-    if "UNABLE_TO_AUTHENTICATE" in err:
-        sys.exit(1)
 
 def mainDomainTail(domain):
+    dots = domain.count(".")
     domain = domain.split(".")
-    domain = domain[len(domain)-2:]
+    domain = domain[len(domain)-dots-1:]
     tmp = []
     for level in domain:
         if "*" not in level:
@@ -73,7 +59,7 @@ def mainDomainTail(domain):
         return domain
     return False
 
-def getDnsList():
+def getDnsList(main_domain):
     dns_list = []
     resolver = dns.resolver.Resolver(configure = False)
     resolver.nameservers = ['8.8.8.8']
@@ -94,7 +80,7 @@ def genDnsList(dns_list):
             new_dns_list.append(rdata)
     return new_dns_list
 
-def resolveDomain(dns_list):
+def resolveDomain(dns_list, main_domain):
     time.sleep(SLEEP)
     resolver = dns.resolver.Resolver(configure = False)
     i = 1
@@ -102,7 +88,7 @@ def resolveDomain(dns_list):
     for server in dns_list:
         resolver.nameservers = [server]
         try:
-            resolver.resolve(f'_acme-challenge.{CERTBOT_DOMAIN}', 'TXT')
+            resolver.resolve(f'_acme-challenge.{main_domain}', 'TXT')
             return True
         except dns.resolver.NXDOMAIN as err:
             if i >= dns_size:
@@ -114,9 +100,21 @@ if len(CERTBOT_DOMAIN.split(".")) > 2:
     main_domain = mainDomainTail(CERTBOT_DOMAIN)
 else:
     main_domain = CERTBOT_DOMAIN
-dns_list = getDnsList()
+
+try:
+    if len(main_domain.split(".")) > 2:
+        domain_tail = domainTail(CERTBOT_DOMAIN)
+        client.add_record(CERTBOT_DOMAIN, {'data':CERTBOT_VALIDATION,'name':f'_acme-challenge.{domain_tail}','ttl':TTL,'type':'TXT'})
+    else:
+        client.add_record(CERTBOT_DOMAIN, {'data':CERTBOT_VALIDATION,'name':'_acme-challenge','ttl':TTL, 'type':'TXT'})
+except Exception as err:
+    logging.error(f"client.add_record error: {err}")
+    if "UNABLE_TO_AUTHENTICATE" in err:
+        sys.exit(1)
+
+dns_list = getDnsList(main_domain)
 dns_ip_list = genDnsList(dns_list)
-is_resolved = resolveDomain(dns_ip_list)
+is_resolved = resolveDomain(dns_ip_list, main_domain)
 if not is_resolved:
     logging.error(f"resolver.resolve error: Could not find validation TXT record for {CERTBOT_DOMAIN}")
     raise Exception(f"resolver.resolve error: Could not find validation TXT record {CERTBOT_DOMAIN}")
