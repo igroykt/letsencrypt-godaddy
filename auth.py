@@ -84,7 +84,7 @@ def genDnsList(dns_list):
             new_dns_list.append(rdata)
     return new_dns_list
 
-def resolveDomain(dns_list, main_domain):
+def resolveDomain(dns_list):
     time.sleep(SLEEP)
     resolver = dns.resolver.Resolver(configure = False)
     i = 1
@@ -92,7 +92,7 @@ def resolveDomain(dns_list, main_domain):
     for server in dns_list:
         resolver.nameservers = [server]
         try:
-            resolver.resolve(f'_acme-challenge.{main_domain}', 'TXT')
+            resolver.resolve(f'_acme-challenge.{CERTBOT_DOMAIN}', 'TXT')
             return True
         except dns.resolver.NXDOMAIN as err:
             if i >= dns_size:
@@ -307,7 +307,7 @@ except Exception as err:
 
 dns_list = getDnsList(main_domain)
 dns_ip_list = genDnsList(dns_list)
-is_resolved = resolveDomain(dns_ip_list, main_domain)
+is_resolved = resolveDomain(dns_ip_list)
 if not is_resolved:
     logging.error(f"resolver.resolve error: Could not find validation TXT record for {CERTBOT_DOMAIN}")
     raise Exception(f"resolver.resolve error: Could not find validation TXT record {CERTBOT_DOMAIN}")
