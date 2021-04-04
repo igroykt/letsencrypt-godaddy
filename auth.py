@@ -280,24 +280,22 @@ def is_tld():
 
 domain_object = get_tld(CERTBOT_DOMAIN, fix_protocol=True, as_object=True)
 tld = is_tld()
+main_domain = mainDomainTail(CERTBOT_DOMAIN)
 
 try:
     if len(CERTBOT_DOMAIN.split(".")) > 2:
         if tld:
-            main_domain = mainDomainTail(CERTBOT_DOMAIN)
             domain_tail = domain_object.subdomain.split(".")
             domain_tail = domain_tail[1:]
             domain_tail = '.'.join(domain_tail)
             client.add_record(CERTBOT_DOMAIN, {'data':CERTBOT_VALIDATION,'name':f'_acme-challenge.{domain_tail}','ttl':TTL,'type':'TXT'})
         else:
-            main_domain = mainDomainTail(CERTBOT_DOMAIN)
             domain_tail = domainTail(CERTBOT_DOMAIN)
             if domain_tail:
                 client.add_record(CERTBOT_DOMAIN, {'data':CERTBOT_VALIDATION,'name':f'_acme-challenge.{domain_tail}','ttl':TTL,'type':'TXT'})
             else:
                 client.add_record(CERTBOT_DOMAIN, {'data':CERTBOT_VALIDATION,'name':'_acme-challenge','ttl':TTL, 'type':'TXT'})
     else:
-        main_domain = mainDomainTail(CERTBOT_DOMAIN)
         client.add_record(CERTBOT_DOMAIN, {'data':CERTBOT_VALIDATION,'name':'_acme-challenge','ttl':TTL, 'type':'TXT'})
 except Exception as err:
     logging.error(f"client.add_record error: {err}")
