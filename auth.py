@@ -36,8 +36,12 @@ except Exception as err:
     logging.error(f"Account config error: {err}")
 
 def domainTail(domain):
+    dots = main_domain.count(".")-1
     domain = domain.split(".")
-    domain = domain[:len(domain)-2]
+    if tld:
+        domain = domain[-dots:]
+    else:
+        domain = domain[:len(domain)-2]
     tmp = []
     for level in domain:
         if "*" not in level:
@@ -92,7 +96,7 @@ def resolveDomain(dns_list):
     for server in dns_list:
         resolver.nameservers = [server]
         try:
-            resolver.resolve(f'_acme-challenge.{CERTBOT_DOMAIN}', 'TXT')
+            resolver.resolve(f'_acme-challenge.{domainTail(CERTBOT_DOMAIN)}', 'TXT')
             return True
         except dns.resolver.NXDOMAIN as err:
             if i >= dns_size:
