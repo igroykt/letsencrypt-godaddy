@@ -297,6 +297,7 @@ try:
             else:
                 client.add_record(CERTBOT_DOMAIN, {'data':CERTBOT_VALIDATION,'name':'_acme-challenge','ttl':TTL, 'type':'TXT'})
     else:
+        main_domain = mainDomainTail(CERTBOT_DOMAIN)
         client.add_record(CERTBOT_DOMAIN, {'data':CERTBOT_VALIDATION,'name':'_acme-challenge','ttl':TTL, 'type':'TXT'})
 except Exception as err:
     logging.error(f"client.add_record error: {err}")
