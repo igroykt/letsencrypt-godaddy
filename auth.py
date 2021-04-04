@@ -48,8 +48,12 @@ def domainTail(domain):
     return False
 
 def mainDomainTail(domain):
+    dots = domain.count(".")-1
     domain = domain.split(".")
-    domain = domain[len(domain)-2:]
+    if tld:
+        domain = domain[-dots:]
+    else:
+        domain = domain[len(domain)-2:]
     tmp = []
     for level in domain:
         if "*" not in level:
