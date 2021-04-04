@@ -1,3 +1,7 @@
+![GitHub Workflow Status](https://img.shields.io/github/workflow/status/igroykt/letsencrypt-godaddy/letsencrypt-godaddy%20build)
+![GitHub](https://img.shields.io/github/license/igroykt/letsencrypt-godaddy)
+![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/igroykt/letsencrypt-godaddy)
+
 # LetsEncrypt GoDaddy
 Приложение для выписки wildcard сертификатов посредством DNS challenge для Linux
 
