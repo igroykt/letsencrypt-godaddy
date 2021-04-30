@@ -35,7 +35,8 @@ try:
 except Exception as err:
     logging.error(f"Account config error: {err}")
 
-def checkTXTRecord(domain):
+def checkTXTRecord(query_domain, main_domain):
+    time.sleep(SLEEP)
     dns_list = []
     resolver = dns.resolver.Resolver(configure=False)
     resolver.nameservers = ['8.8.8.8']
@@ -57,7 +58,7 @@ def checkTXTRecord(domain):
     for server in dns_list:
         resolver.nameservers = [server]
         try:
-            resolver.resolve(f'_acme-challenge.{domain}', 'TXT')
+            resolver.resolve(f'_acme-challenge.{query_domain}', 'TXT')
             return True
         except dns.resolver.NXDOMAIN as err:
             if i >= dns_size:
@@ -65,44 +66,27 @@ def checkTXTRecord(domain):
             i += 1
             pass
 
-domain = CERTBOT_DOMAIN.split(".")[1:]
-domain = ".".join(domain)
+if "*" in CERTBOT_DOMAIN:
+    domain = CERTBOT_DOMAIN.split(".")[1:]
+    domain = ".".join(domain)
+else:
+    domain = CERTBOT_DOMAIN
 domain_object = get_tld(domain, fix_protocol=True, as_object=True)
+main_domain = f"{domain_object.domain}.{domain_object}"
 try:
     if domain_object.subdomain:
-        domain = domain_object.subdomain
-        client.add_record(CERTBOT_DOMAIN, {'data':CERTBOT_VALIDATION,'name':f'_acme-challenge.{domain}','ttl':TTL,'type':'TXT'})
+        reg_domain = f"{domain_object.subdomain}"
+        query_domain = f"{domain_object.subdomain}.{domain_object.domain}.{domain_object}"
+        client.add_record(CERTBOT_DOMAIN, {'data':CERTBOT_VALIDATION,'name':f'_acme-challenge.{reg_domain}','ttl':TTL,'type':'TXT'})
     else:
-        domain = domain_object.domain
-        client.add_record(CERTBOT_DOMAIN, {'data':CERTBOT_VALIDATION,'name':'_acme-challenge','ttl':TTL, 'type':'TXT'})
+        query_domain = f"{domain_object.domain}.{domain_object}"
+        client.add_record(CERTBOT_DOMAIN, {'data':CERTBOT_VALIDATION,'name':'_acme-challenge','ttl':TTL,'type':'TXT'})
 except Exception as err:
     logging.error(f"client.add_record error: {err}")
     if "UNABLE_TO_AUTHENTICATE" in err:
         sys.exit(1)
 
-'''try:
-    if len(CERTBOT_DOMAIN.split(".")) > 2:
-        if tld:
-            domain_tail = domain_object.subdomain.split(".")
-            domain_tail = domain_tail[1:]
-            domain_tail = '.'.join(domain_tail)
-            client.add_record(CERTBOT_DOMAIN, {'data':CERTBOT_VALIDATION,'name':f'_acme-challenge.{domain_tail}','ttl':TTL,'type':'TXT'})
-        else:
-            domain_tail = domainTail(CERTBOT_DOMAIN)
-            if domain_tail:
-                client.add_record(CERTBOT_DOMAIN, {'data':CERTBOT_VALIDATION,'name':f'_acme-challenge.{domain_tail}','ttl':TTL,'type':'TXT'})
-            else:
-                client.add_record(CERTBOT_DOMAIN, {'data':CERTBOT_VALIDATION,'name':'_acme-challenge','ttl':TTL, 'type':'TXT'})
-    else:
-        client.add_record(CERTBOT_DOMAIN, {'data':CERTBOT_VALIDATION,'name':'_acme-challenge','ttl':TTL, 'type':'TXT'})
-except Exception as err:
-    logging.error(f"client.add_record error: {err}")
-    if "UNABLE_TO_AUTHENTICATE" in err:
-        sys.exit(1)'''
-
-#dns_list = getDnsList(main_domain)
-#dns_ip_list = genDnsList(dns_list)
-is_resolved = checkTXTRecord(domain)
+is_resolved = checkTXTRecord(query_domain, main_domain)
 if not is_resolved:
     logging.error(f"resolver.resolve error: Could not find validation TXT record for {CERTBOT_DOMAIN}")
     raise Exception(f"resolver.resolve error: Could not find validation TXT record {CERTBOT_DOMAIN}")
