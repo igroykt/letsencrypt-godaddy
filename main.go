@@ -30,6 +30,7 @@ const APISECRET string = "XXX"
 func call(cmd string, shell string) (string, string, error) {
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
+	var out *exec.Cmd
 	if shell == "cmd" {
 		out := exec.Command(shell, "/C", cmd)
 	}else{
