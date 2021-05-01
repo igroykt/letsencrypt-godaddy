@@ -27,10 +27,12 @@ const APISECRET string = "XXX"
 
 // End of section
 
-func call(cmd string, shell string) (string, string, error) {
+//func call(cmd string, shell string) (string, string, error) {
+func call(cmd string) (string, string, error) {
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
-	out := exec.Command(shell, "-c", cmd)
+	//out := exec.Command(shell, "-c", cmd)
+	out := exec.Command(cmd)
 	out.Stdout = &stdout
 	out.Stderr = &stderr
 	out.SysProcAttr = &syscall.SysProcAttr {
