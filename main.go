@@ -38,8 +38,10 @@ func call(cmd string, shell string) (string, string, error) {
 	}
 	out.Stdout = &stdout
 	out.Stderr = &stderr
-	out.SysProcAttr = &syscall.SysProcAttr {
-		Setpgid: true,
+	if shell != "cmd" {
+		out.SysProcAttr = &syscall.SysProcAttr {
+			Setpgid: true,
+		}
 	}
 	err := out.Run()
 	return stdout.String(), stderr.String(), err
