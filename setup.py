@@ -21,17 +21,17 @@ setup(
 
 print('Compiling Golang...')
 try:
-    if os.name != 'nt':
+    if os.name == 'nt':
+        os.system('go build main.go')
+        os.system('move /Y main build')
+    else:
         with open('main.go', 'r') as file:
             filedata = file.read()
         filedata = filedata.replace('//"syscall"', '"syscall"').replace('/*out.SysProcAttr = &syscall.SysProcAttr {', 'out.SysProcAttr = &syscall.SysProcAttr {').replace('}*/', '}')
         with open('main.go', 'w') as file:
             file.write(filedata)
-    os.system('go build main.go')
-    if os.name == 'nt':
-        os.rename('main.exe', 'build/main.exe')
-    else:
-        os.rename('main', 'build/main')
+        os.system('go build main.go')
+        os.system('mv -f main build')
     print('Compile completed!')
 except Exception as e:
     sys.exit(f'Compile error: {e}')
