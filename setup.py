@@ -24,7 +24,7 @@ try:
     if os.name != 'nt':
         with open('main.go', 'r') as file:
             filedata = file.read()
-        filedata = filedata.replace('//syscall', 'syscall').replace('/*out.SysProcAttr = &syscall.SysProcAttr {', 'out.SysProcAttr = &syscall.SysProcAttr {').replace('}*/', '}')
+        filedata = filedata.replace('//"syscall"', '"syscall"').replace('/*out.SysProcAttr = &syscall.SysProcAttr {', 'out.SysProcAttr = &syscall.SysProcAttr {').replace('}*/', '}')
         with open('main.go', 'w') as file:
             file.write(filedata)
     os.system('go build main.go')
