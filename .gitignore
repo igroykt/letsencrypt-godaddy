@@ -140,3 +140,4 @@ token_cache.ini
 *.exe
 build/
 *.zip
+*.tar.gz
