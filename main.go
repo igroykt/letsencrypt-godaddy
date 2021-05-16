@@ -33,12 +33,18 @@ func call(cmd string, shell string) (string, string, error) {
 	var out *exec.Cmd
 	if runtime.GOOS == "windows" {
 		out = exec.Command(shell, "/C", cmd)
+		out.Stdout = &stdout
+		out.Stderr = &stderr
+		err := out.Run()
 	} else {
 		out = exec.Command(shell, "-c", cmd)
+		out.Stdout = &stdout
+		out.Stderr = &stderr
+		out.SysProcAttr = &syscall.SysProcAttr {
+			Setpgid: true,
+		}
+		err := out.Run()
 	}
-	out.Stdout = &stdout
-	out.Stderr = &stderr
-	err := out.Run()
 	return stdout.String(), stderr.String(), err
 }
 
