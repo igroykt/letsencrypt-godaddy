@@ -2,17 +2,17 @@ package main
 
 import (
 	"bytes"
+	"encoding/base64"
+	"flag"
 	"fmt"
 	"log"
 	"net/smtp"
 	"os"
 	"os/exec"
+	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
-	"encoding/base64"
-	"path/filepath"
-	"flag"
-	"syscall"
 
 	"gopkg.in/ini.v1"
 )
@@ -31,18 +31,13 @@ func call(cmd string, shell string) (string, string, error) {
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
 	var out *exec.Cmd
-	if shell == "cmd" {
-		out := exec.Command(shell, "/C", cmd)
-	}else{
-		out := exec.Command(shell, "-c", cmd)
+	if runtime.GOOS == "windows" {
+		out = exec.Command(shell, "/C", cmd)
+	} else {
+		out = exec.Command(shell, "-c", cmd)
 	}
 	out.Stdout = &stdout
 	out.Stderr = &stderr
-	if shell != "cmd" {
-		out.SysProcAttr = &syscall.SysProcAttr {
-			Setpgid: true,
-		}
-	}
 	err := out.Run()
 	return stdout.String(), stderr.String(), err
 }
@@ -58,46 +53,46 @@ func sendmail(server string, port int, user string, pass string, from string, to
 func sendmailNoAuth(server string, port int, from string, to []string, subject string, message string) error {
 	addr := server + ":" + strconv.Itoa(port)
 
-        r := strings.NewReplacer("\r\n", "", "\r", "", "\n", "", "%0a", "", "%0d", "")
+	r := strings.NewReplacer("\r\n", "", "\r", "", "\n", "", "%0a", "", "%0d", "")
 
-        c, err := smtp.Dial(addr)
-        if err != nil {
-                return err
-        }
-        defer c.Close()
+	c, err := smtp.Dial(addr)
+	if err != nil {
+		return err
+	}
+	defer c.Close()
 
-        if err = c.Mail(r.Replace(from)); err != nil {
-                return err
-        }
+	if err = c.Mail(r.Replace(from)); err != nil {
+		return err
+	}
 
-        for i := range to {
-                to[i] = r.Replace(to[i])
-                if err = c.Rcpt(to[i]); err != nil {
-                        return err
-                }
-        }
+	for i := range to {
+		to[i] = r.Replace(to[i])
+		if err = c.Rcpt(to[i]); err != nil {
+			return err
+		}
+	}
 
-        w, err := c.Data()
-        if err != nil {
-                return err
-        }
+	w, err := c.Data()
+	if err != nil {
+		return err
+	}
 
-        msg := "To: " + strings.Join(to, ",") + "\r\n" +
-                "From: " + from + "\r\n" +
-                "Subject: " + subject + "\r\n" +
-                "Content-Type: text/plain; charset=\"UTF-8\"\r\n" +
-                "Content-Transfer-Encoding: base64\r\n" +
-                "\r\n" + base64.StdEncoding.EncodeToString([]byte(message))
+	msg := "To: " + strings.Join(to, ",") + "\r\n" +
+		"From: " + from + "\r\n" +
+		"Subject: " + subject + "\r\n" +
+		"Content-Type: text/plain; charset=\"UTF-8\"\r\n" +
+		"Content-Transfer-Encoding: base64\r\n" +
+		"\r\n" + base64.StdEncoding.EncodeToString([]byte(message))
 
-        _, err = w.Write([]byte(msg))
-        if err != nil {
-                return err
-        }
-        err = w.Close()
-        if err != nil {
-                return err
-        }
-        return c.Quit()
+	_, err = w.Write([]byte(msg))
+	if err != nil {
+		return err
+	}
+	err = w.Close()
+	if err != nil {
+		return err
+	}
+	return c.Quit()
 }
 
 func makeList(zone []string) string {
@@ -112,15 +107,15 @@ func makeList(zone []string) string {
 }
 
 func makeMainDomain(zone string) string {
-        wildcard := strings.Count(zone, "*")
-        if wildcard > 0 {
-                zone = strings.Replace(zone, "*.", "", -1)
-                return zone
-        }
-        return zone
+	wildcard := strings.Count(zone, "*")
+	if wildcard > 0 {
+		zone = strings.Replace(zone, "*.", "", -1)
+		return zone
+	}
+	return zone
 }
 
-func acmeTest(maindomain string, domains string, adminemail string, config_dir string, python string, certbot string, SHELL string) (string, string, error) {
+func acmeTest(maindomain string, domains string, adminemail string, config_dir string, certbot string, SHELL string) (string, string, error) {
 	var out string
 	var errout string
 	var err error
@@ -128,11 +123,15 @@ func acmeTest(maindomain string, domains string, adminemail string, config_dir s
 	if err != nil {
 		return out, errout, err
 	}
-	out, errout, err = call(certbot+" certonly --config-dir "+config_dir+" --agree-to --email "+adminemail+" --cert-name "+maindomain+" --manual --renew-by-default --preferred-challenges dns --dry-run --manual-auth-hook '"+python+" "+dir+"/auth.pyc' --manual-cleanup-hook '"+python+" "+dir+"/clean.pyc' "+domains, SHELL)
+	if runtime.GOOS == "windows" {
+		out, errout, err = call(certbot+" certonly --config-dir "+config_dir+" --agree-to --email "+adminemail+" --cert-name "+maindomain+" --manual --renew-by-default --preferred-challenges dns --dry-run --manual-auth-hook auth.exe --manual-cleanup-hook clean.exe "+domains, SHELL)
+	} else {
+		out, errout, err = call(certbot+" certonly --config-dir "+config_dir+" --agree-to --email "+adminemail+" --cert-name "+maindomain+" --manual --renew-by-default --preferred-challenges dns --dry-run --manual-auth-hook '"+dir+"/auth' --manual-cleanup-hook '"+dir+"/clean' "+domains, SHELL)
+	}
 	return out, errout, err
 }
 
-func acmeRun(maindomain string, domains string, adminemail string, config_dir string, python string, certbot string, SHELL string) (string, string, error) {
+func acmeRun(maindomain string, domains string, adminemail string, config_dir string, certbot string, SHELL string) (string, string, error) {
 	var out string
 	var errout string
 	var err error
@@ -140,7 +139,11 @@ func acmeRun(maindomain string, domains string, adminemail string, config_dir st
 	if err != nil {
 		return out, errout, err
 	}
-	out, errout, err = call(certbot+" certonly --config-dir "+config_dir+" --agree-to --email "+adminemail+" --cert-name "+maindomain+" --manual --renew-by-default --preferred-challenges dns --manual-auth-hook '"+python+" "+dir+"/auth.pyc' --manual-cleanup-hook '"+python+" "+dir+"/clean.pyc' "+domains, SHELL)
+	if runtime.GOOS == "windows" {
+		out, errout, err = call(certbot+" certonly --config-dir "+config_dir+" --agree-to --email "+adminemail+" --cert-name "+maindomain+" --manual --renew-by-default --preferred-challenges dns --dry-run --manual-auth-hook auth.exe --manual-cleanup-hook clean.exe "+domains, SHELL)
+	} else {
+		out, errout, err = call(certbot+" certonly --config-dir "+config_dir+" --agree-to --email "+adminemail+" --cert-name "+maindomain+" --manual --renew-by-default --preferred-challenges dns --dry-run --manual-auth-hook '"+dir+"/auth' --manual-cleanup-hook '"+dir+"/clean' "+domains, SHELL)
+	}
 	return out, errout, err
 }
 
@@ -153,9 +156,9 @@ func reloadServer(testcmd string, reloadcmd string, SHELL string) (string, strin
 	return out, errout, err
 }
 
-func exportCredentials() {
-	os.Setenv("GDKEY", APIKEY)
-	os.Setenv("GDSECRET", APISECRET)
+func exportCredentials(apikey string, apisecret string) {
+	os.Setenv("GDKEY", apikey)
+	os.Setenv("GDSECRET", apisecret)
 }
 
 func destroyCredentials() {
@@ -187,7 +190,13 @@ func main() {
 		fmt.Println("Error: " + err.Error())
 		os.Exit(1)
 	}
-	cfg, err := ini.Load(dir + "/config.ini")
+	cf := dir + "/config.ini"
+	if !fileExists(cf) {
+		fmt.Println("Error: config.ini not found.")
+		os.Exit(1)
+	}
+	config_file := filepath.FromSlash(cf)
+	cfg, err := ini.Load(config_file)
 	if err != nil {
 		fmt.Println("Error: " + err.Error())
 		os.Exit(1)
@@ -197,7 +206,6 @@ func main() {
 	ZONE := cfg.Section("GENERAL").Key("ZONE").Strings(",")
 	ADMINEMAIL := cfg.Section("GENERAL").Key("ADMIN_EMAIL").String()
 	LOGFILE := "main.log"
-	PYTHON := cfg.Section("GENERAL").Key("PYTHON").String()
 	SHELL := cfg.Section("GENERAL").Key("OS_SHELL").String()
 	CONFIG_DIR := cfg.Section("GENERAL").Key("LE_CONFIG_DIR").String()
 	CERTBOT := cfg.Section("GENERAL").Key("CERTBOT").String()
@@ -211,8 +219,8 @@ func main() {
 	SMTPPASS := cfg.Section("SMTP").Key("PASSWORD").String()
 	SENDER := cfg.Section("SMTP").Key("FROM").String()
 	RECIPIENT := cfg.Section("SMTP").Key("TO").Strings(",")
-        POSTHOOKENABLED := cfg.Section("POSTHOOK").Key("ENABLED").MustBool()
-        POSTHOOKSCRIPT := cfg.Section("POSTHOOK").Key("SCRIPT").String()
+	POSTHOOKENABLED := cfg.Section("POSTHOOK").Key("ENABLED").MustBool()
+	POSTHOOKSCRIPT := cfg.Section("POSTHOOK").Key("SCRIPT").String()
 	HOSTNAME, err := os.Hostname()
 
 	if err != nil {
@@ -220,8 +228,14 @@ func main() {
 		os.Exit(1)
 	}
 
+	if !fileExists(CERTBOT) {
+		fmt.Println("Error: certbot not found.")
+		os.Exit(1)
+	}
+
 	// Set logging
-	LOGFILE = dir + "/" + LOGFILE
+	lg := dir + "/" + LOGFILE
+	LOGFILE = filepath.FromSlash(lg)
 	if fileExists(LOGFILE) {
 		out := os.Remove(LOGFILE)
 		_ = out
@@ -239,7 +253,7 @@ func main() {
 	}
 	log.Println("-= LetsEncrypt GoDaddy =-")
 
-	exportCredentials()
+	exportCredentials(APIKEY, APISECRET)
 
 	if *verbPtr {
 		fmt.Println("Preparing domain list...")
@@ -253,7 +267,7 @@ func main() {
 			fmt.Println("[+] ACME Test: [ START ]")
 		}
 		log.Println("ACME Test Start")
-		stdout, stderr, err = acmeTest(maindomain, domains, ADMINEMAIL, CONFIG_DIR, PYTHON, CERTBOT, SHELL)
+		stdout, stderr, err = acmeTest(maindomain, domains, ADMINEMAIL, CONFIG_DIR, CERTBOT, SHELL)
 		log.Println(stdout)
 		if err != nil {
 			if *verbPtr {
@@ -292,7 +306,7 @@ func main() {
 		fmt.Println("[+] ACME Run: [ START ]")
 	}
 	log.Println("ACME Run Start")
-	stdout, stderr, err = acmeRun(maindomain, domains, ADMINEMAIL, CONFIG_DIR, PYTHON, CERTBOT, SHELL)
+	stdout, stderr, err = acmeRun(maindomain, domains, ADMINEMAIL, CONFIG_DIR, CERTBOT, SHELL)
 	log.Println(stdout)
 	if err != nil {
 		if *verbPtr {
@@ -356,7 +370,7 @@ func main() {
 
 	destroyCredentials()
 
-        if POSTHOOKENABLED {
+	if POSTHOOKENABLED {
 		if *verbPtr {
 			fmt.Println("[+] POST HOOK Run: [ START]")
 		}

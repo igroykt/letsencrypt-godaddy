@@ -30,4 +30,4 @@ jobs:
         go get gopkg.in/ini.v1
     - name: Compile...
       run: |
-        python compile.py
+        python setup.py build

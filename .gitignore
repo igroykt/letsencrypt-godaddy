@@ -136,3 +136,7 @@ clean.pyc
 main
 test.py
 test.go
+token_cache.ini
+*.exe
+build/
+*.zip
