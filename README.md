@@ -129,16 +129,16 @@ Certbot for windows: [https://dl.eff.org/certbot-beta-installer-win32.exe](https
 | SLEEP         | Время ожидания пока TXT запись подхватится публичными DNS серверами    | 30                            |
 | RETRIES       | Количество попыток при проверке TXT записи                             | 3                             |
 | OS_SHELL      | Shell операционной системы                                             | cmd                           |
-| LE_CONFIG_DIR | Путь к директории для хранения конфигураций и сертификатов LetsEncrypt | c:\\letsencrypt               |
-| CERTBOT       | Путь к certbot                                                         | c:\\certbot\\bin\\certbot.exe |
+| LE_CONFIG_DIR | Путь к директории для хранения конфигураций и сертификатов LetsEncrypt | c:\\\\letsencrypt               |
+| CERTBOT       | Путь к certbot                                                         | c:\\\\certbot\\\\bin\\\\certbot.exe |
 
 **[WEBSERVER]**
 
 | Function      | Description                                   | Default value                    |
 |---------------|-----------------------------------------------|----------------------------------|
 | ENABLED       | Флаг активации опции                          | false                            |
-| TEST_CONFIG   | Команда тестирования конфигуарции веб-сервера | c:\\nginx\\sbin\\nginx -t        |
-| RELOAD_CONFIG | Команда перезапуска веб-сервера               | c:\\nginx\\sbin\\nginx -s reload |
+| TEST_CONFIG   | Команда тестирования конфигуарции веб-сервера | c:\\\\nginx\\\\sbin\\\\nginx -t        |
+| RELOAD_CONFIG | Команда перезапуска веб-сервера               | c:\\\\nginx\\\\sbin\\\\nginx -s reload |
 
 ## Прекомпилированные бинарники
 Добавлены прекомпилированные бинарники для auth и clean на всякий случай. Основное приложение main придется собирать вручную командой "go build main.go".
