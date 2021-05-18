@@ -3,7 +3,7 @@ from cx_Freeze import setup, Executable
 
 # Dependencies are automatically detected, but it might need fine tuning.
 build_exe_options = {
-    "packages": ["os", "sys", "godaddypy", "configparser", "time", "logging", "dns.resolver", "tld"],
+    "packages": ["os", "sys", "godaddypy", "configparser", "time", "dns.resolver", "tld"],
     "build_exe": "build"    
 }
 
