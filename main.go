@@ -18,20 +18,10 @@ import (
 // Configuration section
 
 // APIKEY : Godaddy API key
-if len(runtime.APIKEY) == 0 {
-	const APIKEY string = "XXX"
-} else {
-	const APIKEY string = runtime.APIKEY
-}
+const APIKEY string = "XXX"
 
 // APISECRET : Godaddy API secret
-if len(runtime.APISECRET) == 0 {
-	const APISECRET string = "XXX"
-} else {
-	const APISECRET string = runtime.APISECRET
-}
-
-fmt.Println(APIKEY)
+const APISECRET string = "XXX"
 
 // End of section
 
