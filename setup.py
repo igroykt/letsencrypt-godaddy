@@ -7,16 +7,12 @@ build_exe_options = {
     "build_exe": "build"    
 }
 
-# GUI applications require a different base on Windows (the default is for
-# a console application).
-base = "Console"
-
 setup(
     name = "letsencrypt-godaddy",
     version = "1.2",
     description = "letsencrypt-godaddy",
     options = {"build_exe": build_exe_options},
-    executables = [Executable("auth.py", base=base), Executable("clean.py", base=base)]
+    executables = [Executable("auth.py"), Executable("clean.py")]
 )
 
 print('Compiling Golang...')
