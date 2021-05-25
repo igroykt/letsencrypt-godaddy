@@ -1,20 +1,16 @@
-package main
+﻿package main
 
 import (
-	"bytes"
 	"encoding/base64"
 	"flag"
 	"fmt"
 	"log"
 	"net/smtp"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strconv"
 	"strings"
-
-	//"syscall"
 
 	"gopkg.in/ini.v1"
 )
@@ -22,30 +18,22 @@ import (
 // Configuration section
 
 // APIKEY : Godaddy API key
-const APIKEY string = "XXX"
+if len(runtime.APIKEY) == 0 {
+	const APIKEY string = "XXX"
+} else {
+	const APIKEY string = runtime.APIKEY
+}
 
 // APISECRET : Godaddy API secret
-const APISECRET string = "XXX"
+if len(runtime.APISECRET) == 0 {
+	const APISECRET string = "XXX"
+} else {
+	const APISECRET string = runtime.APISECRET
+}
+
+fmt.Println(APIKEY)
 
 // End of section
-
-func call(cmd string, shell string) (string, string, error) {
-	var stdout bytes.Buffer
-	var stderr bytes.Buffer
-	var out *exec.Cmd
-	if runtime.GOOS == "windows" {
-		out = exec.Command(shell, "/C", cmd)
-	} else {
-		out = exec.Command(shell, "-c", cmd)
-	}
-	out.Stdout = &stdout
-	out.Stderr = &stderr
-	/*out.SysProcAttr = &syscall.SysProcAttr {
-		Setpgid: true,
-	}*/
-	err := out.Run()
-	return stdout.String(), stderr.String(), err
-}
 
 func sendmail(server string, port int, user string, pass string, from string, to []string, subject string, message string) error {
 	smtpserver := server + ":" + strconv.Itoa(port)
