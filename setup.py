@@ -25,7 +25,7 @@ try:
         os.system('go build -tags win -o main.exe')
         os.system('move /Y main.exe build')
     else:
-        os.system('go build main.go -o main')
+        os.system('go build -o main')
         os.system('mv -f main build')
     print('Compile completed!')
 except Exception as e:
