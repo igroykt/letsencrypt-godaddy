@@ -9,28 +9,23 @@ build_exe_options = {
 
 # GUI applications require a different base on Windows (the default is for
 # a console application).
-base = None
+base = "Console"
 
 setup(
     name = "letsencrypt-godaddy",
     version = "1.2",
     description = "letsencrypt-godaddy",
     options = {"build_exe": build_exe_options},
-    executables = [Executable("auth.py"), Executable("clean.py")]
+    executables = [Executable("auth.py", base=base), Executable("clean.py", base=base)]
 )
 
 print('Compiling Golang...')
 try:
     if os.name == 'nt':
-        os.system('go build main.go')
-        os.system('move /Y main build')
+        os.system('go build -tags win -o main.exe')
+        os.system('move /Y main.exe build')
     else:
-        with open('main.go', 'r') as file:
-            filedata = file.read()
-        filedata = filedata.replace('//"syscall"', '"syscall"').replace('/*out.SysProcAttr = &syscall.SysProcAttr {', 'out.SysProcAttr = &syscall.SysProcAttr {').replace('}*/', '}')
-        with open('main.go', 'w') as file:
-            file.write(filedata)
-        os.system('go build main.go')
+        os.system('go build main.go -o main')
         os.system('mv -f main build')
     print('Compile completed!')
 except Exception as e:
