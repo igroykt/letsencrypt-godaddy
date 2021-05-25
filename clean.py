@@ -20,6 +20,7 @@ try:
     client = Client(my_acct)
 except Exception as err:
     raise Exception(f"Account config error: {err}")
+    sys.exit(1)
 
 def findTXTID(data):
     ids = []
@@ -35,3 +36,4 @@ try:
         client.delete_records(CERTBOT_DOMAIN, name=result)
 except Exception as err:
     raise Exception(f"client.delete_records error: {err}")
+    sys.exit(1)

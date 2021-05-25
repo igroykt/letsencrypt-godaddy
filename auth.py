@@ -79,16 +79,18 @@ try:
         client.add_record(CERTBOT_DOMAIN, {'data':CERTBOT_VALIDATION,'name':'_acme-challenge','ttl':TTL,'type':'TXT'})
 except Exception as err:
     raise Exception(f"client.add_record error: {err}")
+    sys.exit(1)
     if "UNABLE_TO_AUTHENTICATE" in err:
         raise Exception("Unable to authenticate")
         sys.exit(1)
 
 for i in range(0, RETRIES):
-    while True:
-        try:
-            is_resolved = checkTXTRecord(query_domain, main_domain)
-        except Exception:
+    try:
+        is_resolved = checkTXTRecord(query_domain, main_domain)
+    except Exception:
+        if i < RETRIES:
             time.sleep(SLEEP)
             continue
-        raise Exception(f"resolver.resolve error: Could not find validation TXT record {CERTBOT_DOMAIN}")
-        break
+        else:        
+            raise Exception(f"resolver.resolve error: Could not find validation TXT record {CERTBOT_DOMAIN}")
+            sys.exit(1)
