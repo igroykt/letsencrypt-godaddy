@@ -27,6 +27,10 @@ try:
     else:
         os.system('go build -o main')
         os.system('mv -f main build')
+        files = [f for f in os.listdir(".") if os.path.isfile(os.path.join(".", f))]
+        for file in files:
+            if "libcrypto" in file or "libssl" in file:
+                os.system(f'mv -f {file} build')
     print('Compile completed!')
 except Exception as e:
     sys.exit(f'Compile error: {e}')
