@@ -8,13 +8,18 @@ import time
 import dns.resolver
 from tld import get_tld
 
+
 script_dir = os.path.dirname(os.path.realpath(__file__))
 
+
 config = ConfigParser()
+
+
 try:
     config.read(script_dir + "/config.ini")
 except Exception as err:
     sys.exit(f"Config parse: {err}")
+
 
 API_KEY = os.getenv('GDKEY')
 API_SECRET = os.getenv('GDSECRET')
@@ -24,11 +29,13 @@ RETRIES = int(config.get('GENERAL', 'RETRIES'))
 CERTBOT_DOMAIN = os.getenv('CERTBOT_DOMAIN')
 CERTBOT_VALIDATION = os.getenv('CERTBOT_VALIDATION')
 
+
 try:
     my_acct = Account(api_key=API_KEY, api_secret=API_SECRET)
     client = Client(my_acct)
 except Exception as err:
     raise Exception(f"Account config error: {err}")
+
 
 def checkTXTRecord(query_domain, main_domain):
     dns_list = []
@@ -53,12 +60,13 @@ def checkTXTRecord(query_domain, main_domain):
         resolver.nameservers = [server]
         try:
             resolver.resolve(f'_acme-challenge.{query_domain}', 'TXT')
-            return True
+            return
         except dns.resolver.NXDOMAIN as err:
             if i >= dns_size:
-                return False
+                raise Exception(err)
             i += 1
             pass
+
 
 if "*" in CERTBOT_DOMAIN:
     domain = CERTBOT_DOMAIN.split(".")[1:]
@@ -66,8 +74,10 @@ if "*" in CERTBOT_DOMAIN:
 else:
     domain = CERTBOT_DOMAIN
 
+
 domain_object = get_tld(domain, fix_protocol=True, as_object=True)
 main_domain = f"{domain_object.domain}.{domain_object}"
+
 
 try:
     if domain_object.subdomain:
@@ -79,18 +89,18 @@ try:
         client.add_record(CERTBOT_DOMAIN, {'data':CERTBOT_VALIDATION,'name':'_acme-challenge','ttl':TTL,'type':'TXT'})
 except Exception as err:
     raise Exception(f"client.add_record error: {err}")
-    sys.exit(1)
     if "UNABLE_TO_AUTHENTICATE" in err:
         raise Exception("Unable to authenticate")
-        sys.exit(1)
 
-for i in range(0, RETRIES):
+
+i = 1
+while i <= RETRIES:
     try:
-        is_resolved = checkTXTRecord(query_domain, main_domain)
+        checkTXTRecord(query_domain, main_domain)
+        break
     except Exception:
-        if i < RETRIES:
-            time.sleep(SLEEP)
-            continue
-        else:        
+        i += 1
+        time.sleep(SLEEP)
+    finally:
+        if i >= RETRIES:
             raise Exception(f"resolver.resolve error: Could not find validation TXT record {CERTBOT_DOMAIN}")
-            sys.exit(1)
