@@ -18,7 +18,7 @@ config = ConfigParser()
 try:
     config.read(script_dir + "/config.ini")
 except Exception as err:
-    sys.exit(f"Config parse: {err}")
+    raise SystemExit(f"Config parse: {err}")
 
 
 API_KEY = os.getenv('GDKEY')
@@ -34,7 +34,7 @@ try:
     my_acct = Account(api_key=API_KEY, api_secret=API_SECRET)
     client = Client(my_acct)
 except Exception as err:
-    raise Exception(f"Account config error: {err}")
+    raise SystemExit(f"Account config error: {err}")
 
 
 def checkTXTRecord(query_domain, main_domain):
@@ -55,15 +55,15 @@ def checkTXTRecord(query_domain, main_domain):
             new_dns_list.append(rdata)
     resolver = dns.resolver.Resolver(configure=False)
     i = 1
-    dns_size = len(dns_list)
-    for server in dns_list:
+    dns_size = len(new_dns_list)
+    for server in new_dns_list:
         resolver.nameservers = [server]
         try:
             resolver.resolve(f'_acme-challenge.{query_domain}', 'TXT')
             return
         except dns.resolver.NXDOMAIN as err:
             if i >= dns_size:
-                raise Exception(err)
+                raise SystemExit(err)
             i += 1
             pass
 
@@ -88,9 +88,9 @@ try:
         query_domain = f"{domain_object.domain}.{domain_object}"
         client.add_record(CERTBOT_DOMAIN, {'data':CERTBOT_VALIDATION,'name':'_acme-challenge','ttl':TTL,'type':'TXT'})
 except Exception as err:
-    raise Exception(f"client.add_record error: {err}")
+    raise SystemExit(f"client.add_record error: {err}")
     if "UNABLE_TO_AUTHENTICATE" in err:
-        raise Exception("Unable to authenticate")
+        raise SystemExit("Unable to authenticate")
 
 
 i = 1
@@ -103,4 +103,4 @@ while i <= RETRIES:
         time.sleep(SLEEP)
     finally:
         if i >= RETRIES:
-            raise Exception(f"resolver.resolve error: Could not find validation TXT record {CERTBOT_DOMAIN}")
+            raise SystemExit(f"resolver.resolve error: Could not find validation TXT record {CERTBOT_DOMAIN}")
