@@ -42,4 +42,6 @@ try:
     for result in results:
         client.delete_records(CERTBOT_DOMAIN, name=result)
 except Exception as err:
+    if "UNKNOWN_DOMAIN" in err:
+        pass
     raise Exception(f"client.delete_records error: {err}")
