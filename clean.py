@@ -44,4 +44,5 @@ try:
 except Exception as err:
     if "UNKNOWN_DOMAIN" in err:
         pass
-    raise Exception(f"client.delete_records error: {err}")
+    else:
+        raise Exception(f"client.delete_records error: {err}")
