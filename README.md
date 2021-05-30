@@ -23,7 +23,7 @@ mv config.sample.ini config.ini
 python setup.py build
 mkdir /root/bin/letsencrypt-godaddy
 mv build/* /root/bin/letsencrypt-godaddy
-mv config.ini /root/bin/letsencrypt-godaddy
+cp config.ini /root/bin/letsencrypt-godaddy
 ```
 
 ### Настройка
@@ -33,16 +33,17 @@ APIKEY и APISECRET прописать в main.go в "Configuration section".
 
 **[GENERAL]**
 
-| Function      | Description                                                            | Default value          |
-|---------------|------------------------------------------------------------------------|------------------------|
-| ZONE          | Список доменных зон (разделенных запятыми)                             | None                   |
-| ADMIN_EMAIL   | E-mail администратора certbot                                          | None                   |
-| TTL           | Время жизни TXT записей                                                | 600                    |
-| SLEEP         | Время ожидания пока TXT запись подхватится публичными DNS серверами    | 30                     |
-| RETRIES       | Количество попыток при проверке TXT записи                             | 3                      |
-| OS_SHELL      | Shell операционной системы                                             | /bin/bash              |
-| LE_CONFIG_DIR | Путь к директории для хранения конфигураций и сертификатов LetsEncrypt | /etc/letsencrypt       |
-| CERTBOT       | Путь к certbot                                                         | /usr/local/bin/certbot |
+| Function      | Description                                                            | Default value                    |
+|---------------|------------------------------------------------------------------------|----------------------------------|
+| ZONE          | Список доменных зон (разделенных запятыми)                             | None                             |
+| ADMIN_EMAIL   | E-mail администратора certbot                                          | None                             |
+| TTL           | Время жизни TXT записей                                                | 600                              |
+| SLEEP         | Время ожидания пока TXT запись подхватится публичными DNS серверами    | 30                               |
+| RETRIES       | Количество попыток при проверке TXT записи                             | 3                                |
+| OS_SHELL      | Shell операционной системы                                             | /bin/bash                        |
+| LE_CONFIG_DIR | Путь к директории для хранения конфигураций и сертификатов LetsEncrypt | /etc/letsencrypt                 |
+| CERTBOT       | Путь к certbot                                                         | /usr/local/bin/certbot           |
+| LE_LOG        | Путь к логу certbot                                                    | /var/log/letsencrypt/letsencrypt |
 
 LE_CONFIG_DIR полезен в том случае, когда для некоторых ресурсов надо выписывать сертификаты по http challenge, а некоторые по dns challenge. В таком случае для dns challenge можно указать путь скажем /etc/letsencrypt-dns, тогда будет создана эта директория и аккаунты, конфиги, сертификаты для dns challenge будут храниться там.
 
@@ -110,7 +111,7 @@ move config.sample.ini config.ini
 python setup.py build
 mkdir c:\godaddy
 move build\* c:\godaddy
-move config.ini c:\godaddy
+copy config.ini c:\godaddy
 # в системную переменную Path добавить путь c:\godaddy
 ```
 
@@ -121,24 +122,25 @@ Certbot for windows: [https://dl.eff.org/certbot-beta-installer-win32.exe](https
 
 **[GENERAL]**
 
-| Function      | Description                                                            | Value                         |
-|---------------|------------------------------------------------------------------------|-------------------------------|
-| ZONE          | Список доменных зон (разделенных запятыми)                             | None                          |
-| ADMIN_EMAIL   | E-mail администратора certbot                                          | None                          |
-| TTL           | Время жизни TXT записей                                                | 600                           |
-| SLEEP         | Время ожидания пока TXT запись подхватится публичными DNS серверами    | 30                            |
-| RETRIES       | Количество попыток при проверке TXT записи                             | 3                             |
-| OS_SHELL      | Shell операционной системы                                             | cmd                           |
-| LE_CONFIG_DIR | Путь к директории для хранения конфигураций и сертификатов LetsEncrypt | c:\\\\letsencrypt               |
-| CERTBOT       | Путь к certbot                                                         | c:\\\\certbot\\\\bin\\\\certbot.exe |
+| Function      | Description                                                            | Value                                   |
+|---------------|------------------------------------------------------------------------|-----------------------------------------|
+| ZONE          | Список доменных зон (разделенных запятыми)                             | None                                    |
+| ADMIN_EMAIL   | E-mail администратора certbot                                          | None                                    |
+| TTL           | Время жизни TXT записей                                                | 600                                     |
+| SLEEP         | Время ожидания пока TXT запись подхватится публичными DNS серверами    | 30                                      |
+| RETRIES       | Количество попыток при проверке TXT записи                             | 3                                       |
+| OS_SHELL      | Shell операционной системы                                             | cmd                                     |
+| LE_CONFIG_DIR | Путь к директории для хранения конфигураций и сертификатов LetsEncrypt | c:\\\\letsencrypt                       |
+| CERTBOT       | Путь к certbot                                                         | c:\\\\certbot\\\\bin\\\\certbot.exe     |
+| LE_LOG        | Путь к логу certbot                                                    | c:\\\\certbot\\\\log\\\\letsencrypt.log |
 
 **[WEBSERVER]**
 
-| Function      | Description                                   | Default value                    |
-|---------------|-----------------------------------------------|----------------------------------|
-| ENABLED       | Флаг активации опции                          | false                            |
+| Function      | Description                                   | Default value                          |
+|---------------|-----------------------------------------------|----------------------------------------|
+| ENABLED       | Флаг активации опции                          | false                                  |
 | TEST_CONFIG   | Команда тестирования конфигуарции веб-сервера | c:\\\\nginx\\\\sbin\\\\nginx -t        |
 | RELOAD_CONFIG | Команда перезапуска веб-сервера               | c:\\\\nginx\\\\sbin\\\\nginx -s reload |
 
 ## Прекомпилированные бинарники
-Добавлены прекомпилированные бинарники для auth и clean на всякий случай. Основное приложение main придется собирать вручную командой "go build main.go".
+Добавлены прекомпилированные бинарники для auth и clean на всякий случай. Основное приложение main придется собирать вручную командой "go build" или "go build -tags win" на windows.
