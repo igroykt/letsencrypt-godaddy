@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/smtp"
 	"os"
@@ -11,6 +12,7 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"time"
 
 	"gopkg.in/ini.v1"
 )
@@ -107,9 +109,9 @@ func acmeTest(maindomain string, domains string, adminemail string, config_dir s
 		return out, errout, err
 	}
 	if runtime.GOOS == "windows" {
-		out, errout, err = call(certbot+" certonly --config-dir "+config_dir+" --agree-to --email "+adminemail+" --cert-name "+maindomain+" --manual --renew-by-default --preferred-challenges dns --dry-run --manual-auth-hook auth.exe --manual-cleanup-hook clean.exe "+domains, SHELL)
+		out, errout, err = call(certbot+" certonly --config-dir "+config_dir+" --agree-tos --email "+adminemail+" --cert-name "+maindomain+" --manual --renew-by-default --preferred-challenges dns --dry-run --manual-auth-hook auth.exe --manual-cleanup-hook clean.exe "+domains, SHELL)
 	} else {
-		out, errout, err = call(certbot+" certonly --config-dir "+config_dir+" --agree-to --email "+adminemail+" --cert-name "+maindomain+" --manual --renew-by-default --preferred-challenges dns --dry-run --manual-auth-hook '"+dir+"/auth' --manual-cleanup-hook '"+dir+"/clean' "+domains, SHELL)
+		out, errout, err = call(certbot+" certonly --config-dir "+config_dir+" --agree-tos --email "+adminemail+" --cert-name "+maindomain+" --manual --renew-by-default --preferred-challenges dns --dry-run --manual-auth-hook '"+dir+"/auth' --manual-cleanup-hook '"+dir+"/clean' "+domains, SHELL)
 	}
 	return out, errout, err
 }
@@ -123,9 +125,9 @@ func acmeRun(maindomain string, domains string, adminemail string, config_dir st
 		return out, errout, err
 	}
 	if runtime.GOOS == "windows" {
-		out, errout, err = call(certbot+" certonly --config-dir "+config_dir+" --agree-to --email "+adminemail+" --cert-name "+maindomain+" --manual --renew-by-default --preferred-challenges dns --dry-run --manual-auth-hook auth.exe --manual-cleanup-hook clean.exe "+domains, SHELL)
+		out, errout, err = call(certbot+" certonly --config-dir "+config_dir+" --agree-tos --email "+adminemail+" --cert-name "+maindomain+" --manual --renew-by-default --preferred-challenges dns --manual-auth-hook auth.exe --manual-cleanup-hook clean.exe "+domains, SHELL)
 	} else {
-		out, errout, err = call(certbot+" certonly --config-dir "+config_dir+" --agree-to --email "+adminemail+" --cert-name "+maindomain+" --manual --renew-by-default --preferred-challenges dns --dry-run --manual-auth-hook '"+dir+"/auth' --manual-cleanup-hook '"+dir+"/clean' "+domains, SHELL)
+		out, errout, err = call(certbot+" certonly --config-dir "+config_dir+" --agree-tos --email "+adminemail+" --cert-name "+maindomain+" --manual --renew-by-default --preferred-challenges dns --manual-auth-hook '"+dir+"/auth' --manual-cleanup-hook '"+dir+"/clean' "+domains, SHELL)
 	}
 	return out, errout, err
 }
@@ -158,10 +160,31 @@ func fileExists(filename string) bool {
 	return !info.IsDir()
 }
 
+func isDeactivated(lelog string) (bool, error) {
+	sdate := time.Now().Format("2006-01-02")
+	sline := "deactivated"
+	var trigger bool
+	data, err := ioutil.ReadFile(lelog)
+	if err != nil {
+		return false, err
+	}
+	for _, line := range strings.Split(string(data), "\n") {
+		if strings.Index(line, sdate) > -1 {
+			trigger = true
+		}
+		if trigger && strings.Index(line, sline) > -1 {
+			return true, err
+		}
+	}
+	return false, nil
+}
+
 func main() {
 	var err error
 	var stdout string
 	var stderr string
+	var subject string
+	var deactivated bool
 
 	testPtr := flag.Bool("t", false, "test and exit")
 	verbPtr := flag.Bool("v", false, "verbose mode")
@@ -192,6 +215,7 @@ func main() {
 	SHELL := cfg.Section("GENERAL").Key("OS_SHELL").String()
 	CONFIG_DIR := cfg.Section("GENERAL").Key("LE_CONFIG_DIR").String()
 	CERTBOT := cfg.Section("GENERAL").Key("CERTBOT").String()
+	LELOG := cfg.Section("GENERAL").Key("LE_LOG").String()
 	WEBSERVERENABLED := cfg.Section("WEBSERVER").Key("ENABLED").MustBool()
 	TESTCONFIG := cfg.Section("WEBSERVER").Key("TEST_CONFIG").String()
 	RELOADCONFIG := cfg.Section("WEBSERVER").Key("RELOAD_CONFIG").String()
@@ -252,13 +276,18 @@ func main() {
 		log.Println("ACME Test Start")
 		stdout, stderr, err = acmeTest(maindomain, domains, ADMINEMAIL, CONFIG_DIR, CERTBOT, SHELL)
 		log.Println(stdout)
+		deactivated, err = isDeactivated(LELOG)
 		if err != nil {
 			if *verbPtr {
 				fmt.Println("[-] ACME Test: [ FAILED ]: " + stderr + " " + err.Error())
 			}
 			log.Println("ACME Test Failed: " + stderr + " " + err.Error())
 			if SMTPENABLED {
-				subject := "[" + HOSTNAME + "] ACME Test: [ FAILED ]"
+				if deactivated {
+					subject = "[" + HOSTNAME + "] ACME Test: account deactivated"
+				} else {
+					subject = "[" + HOSTNAME + "] ACME Test: [ FAILED ]"
+				}
 				if len(SMTPUSER) > 0 && len(SMTPPASS) > 0 {
 					err = sendmail(SMTPSERVER, SMTPPORT, SMTPUSER, SMTPPASS, SENDER, RECIPIENT, subject, stderr+" "+err.Error())
 				} else {
@@ -291,13 +320,18 @@ func main() {
 	log.Println("ACME Run Start")
 	stdout, stderr, err = acmeRun(maindomain, domains, ADMINEMAIL, CONFIG_DIR, CERTBOT, SHELL)
 	log.Println(stdout)
+	deactivated, err = isDeactivated(LELOG)
 	if err != nil {
 		if *verbPtr {
 			fmt.Println("[-] ACME Run: [ FAILED ]: " + stderr + " " + err.Error())
 		}
 		log.Println("ACME Run Failed: " + stderr + " " + err.Error())
 		if SMTPENABLED {
-			subject := "[" + HOSTNAME + "] ACME Run: [ FAILED ]"
+			if deactivated {
+				subject = "[" + HOSTNAME + "] ACME Run: account deactivated"
+			} else {
+				subject = "[" + HOSTNAME + "] ACME Run: [ FAILED ]"
+			}
 			if len(SMTPUSER) > 0 && len(SMTPPASS) > 0 {
 				err = sendmail(SMTPSERVER, SMTPPORT, SMTPUSER, SMTPPASS, SENDER, RECIPIENT, subject, stderr+" "+err.Error())
 			} else {
