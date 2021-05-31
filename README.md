@@ -127,7 +127,7 @@ Certbot for windows: [https://dl.eff.org/certbot-beta-installer-win32.exe](https
 | ZONE          | Список доменных зон (разделенных запятыми)                             | None                                    |
 | ADMIN_EMAIL   | E-mail администратора certbot                                          | None                                    |
 | TTL           | Время жизни TXT записей                                                | 600                                     |
-| SLEEP         | Время ожидания пока TXT запись подхватится публичными DNS серверами    | 30                                      |
+| SLEEP         | Время ожидания пока TXT запись подхватится публичными DNS серверами    | 60                                      |
 | RETRIES       | Количество попыток при проверке TXT записи                             | 3                                       |
 | OS_SHELL      | Shell операционной системы                                             | cmd                                     |
 | LE_CONFIG_DIR | Путь к директории для хранения конфигураций и сертификатов LetsEncrypt | c:\\\\letsencrypt                       |
