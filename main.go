@@ -2,6 +2,7 @@
 
 import (
 	"encoding/base64"
+	"errors"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -173,7 +174,7 @@ func isDeactivated(lelog string) (bool, error) {
 			trigger = true
 		}
 		if trigger && strings.Index(line, sline) > -1 {
-			return true, err
+			return true, errors.New(line)
 		}
 	}
 	return false, nil
