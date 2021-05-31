@@ -1,42 +1,43 @@
+# cython: language_level=3
+
 import os
 import sys
 from godaddypy import Client, Account
 from configparser import ConfigParser
 import time
-import logging
 import dns.resolver
 from tld import get_tld
 
+
 script_dir = os.path.dirname(os.path.realpath(__file__))
 
+
 config = ConfigParser()
+
+
 try:
     config.read(script_dir + "/config.ini")
 except Exception as err:
-    sys.exit(f"Config parse: {err}")
+    raise SystemExit(f"Config parse: {err}")
+
 
 API_KEY = os.getenv('GDKEY')
 API_SECRET = os.getenv('GDSECRET')
 TTL = int(config.get('GENERAL', 'TTL'))
 SLEEP = int(config.get('GENERAL', 'SLEEP'))
+RETRIES = int(config.get('GENERAL', 'RETRIES'))
 CERTBOT_DOMAIN = os.getenv('CERTBOT_DOMAIN')
 CERTBOT_VALIDATION = os.getenv('CERTBOT_VALIDATION')
 
-LOG_FILE = script_dir + "/auth.log"
-
-if os.path.exists(LOG_FILE):
-    os.remove(LOG_FILE)
-
-logging.basicConfig(format = '%(levelname)-8s [%(asctime)s] %(message)s', level = logging.ERROR, filename = LOG_FILE)
 
 try:
     my_acct = Account(api_key=API_KEY, api_secret=API_SECRET)
     client = Client(my_acct)
 except Exception as err:
-    logging.error(f"Account config error: {err}")
+    raise SystemExit(f"Account config error: {err}")
+
 
 def checkTXTRecord(query_domain, main_domain):
-    time.sleep(SLEEP)
     dns_list = []
     resolver = dns.resolver.Resolver(configure=False)
     resolver.nameservers = ['8.8.8.8']
@@ -54,25 +55,30 @@ def checkTXTRecord(query_domain, main_domain):
             new_dns_list.append(rdata)
     resolver = dns.resolver.Resolver(configure=False)
     i = 1
-    dns_size = len(dns_list)
-    for server in dns_list:
+    dns_size = len(new_dns_list)
+    for server in new_dns_list:
         resolver.nameservers = [server]
         try:
             resolver.resolve(f'_acme-challenge.{query_domain}', 'TXT')
-            return True
+            return
         except dns.resolver.NXDOMAIN as err:
             if i >= dns_size:
-                return False
+                raise SystemExit(err)
             i += 1
             pass
+
 
 if "*" in CERTBOT_DOMAIN:
     domain = CERTBOT_DOMAIN.split(".")[1:]
     domain = ".".join(domain)
 else:
     domain = CERTBOT_DOMAIN
+
+
 domain_object = get_tld(domain, fix_protocol=True, as_object=True)
 main_domain = f"{domain_object.domain}.{domain_object}"
+
+
 try:
     if domain_object.subdomain:
         reg_domain = f"{domain_object.subdomain}"
@@ -82,11 +88,19 @@ try:
         query_domain = f"{domain_object.domain}.{domain_object}"
         client.add_record(CERTBOT_DOMAIN, {'data':CERTBOT_VALIDATION,'name':'_acme-challenge','ttl':TTL,'type':'TXT'})
 except Exception as err:
-    logging.error(f"client.add_record error: {err}")
+    raise SystemExit(f"client.add_record error: {err}")
     if "UNABLE_TO_AUTHENTICATE" in err:
-        sys.exit(1)
+        raise SystemExit("Unable to authenticate")
 
-is_resolved = checkTXTRecord(query_domain, main_domain)
-if not is_resolved:
-    logging.error(f"resolver.resolve error: Could not find validation TXT record for {CERTBOT_DOMAIN}")
-    raise Exception(f"resolver.resolve error: Could not find validation TXT record {CERTBOT_DOMAIN}")
+
+i = 1
+while i <= RETRIES:
+    try:
+        checkTXTRecord(query_domain, main_domain)
+        break
+    except Exception:
+        i += 1
+        time.sleep(SLEEP)
+    finally:
+        if i >= RETRIES:
+            raise SystemExit(f"resolver.resolve error: Could not find validation TXT record {CERTBOT_DOMAIN}")
