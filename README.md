@@ -3,142 +3,70 @@
 ![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/igroykt/letsencrypt-godaddy)
 
 # LetsEncrypt GoDaddy
-Приложение для выписки wildcard сертификатов посредством DNS challenge для Linux
+Application to obtain wildcard certificates with DNS challenge using GoDaddy DNS API.
 
-## Зависимости
-* Python 3.8
-* Golang 1.16
+## Dependencies
+* Python 3.6+
 * Certbot
 
 ## Unix
-### Сборка и установка 
+### Build and install 
 ```
-# установить certbot
-# установить golang
-go get gopkg.in/ini.v1
-go env -w GO111MODULE=auto
+pip3 install certbot
 pip3 install -r requirements.txt
 mv config.sample.ini config.ini
-# подправить config.ini и main.go
+# setup config.ini
 python setup.py build
-mkdir /root/bin/letsencrypt-godaddy
-mv build/* /root/bin/letsencrypt-godaddy
-mv config.ini /root/bin/letsencrypt-godaddy
+mkdir $HOME/letsencrypt-godaddy
+mv build/* $HOME/letsencrypt-godaddy
+mv config.ini $HOME/letsencrypt-godaddy
+$HOME/letsencrypt-godaddy/main -a
 ```
+Encryption key change on every build.
 
 ### Настройка
-Про генерацию APIKEY и APISECRET читайте тут https://developer.godaddy.com/getstarted. Если сайт отображается некорректно, то попробуйте поменять язык браузера на английский (обычно помогает).
+About APIKEY and APISECRET read here https://developer.godaddy.com/getstarted.
 
-APIKEY и APISECRET прописать в main.go в "Configuration section".
+Run "./main -a" to input API authentication data.
 
-**[GENERAL]**
+Info about configuration options read on wiki.
 
-| Function      | Description                                                            | Default value          |
-|---------------|------------------------------------------------------------------------|------------------------|
-| ZONE          | Список доменных зон (разделенных запятыми)                             | None                   |
-| ADMIN_EMAIL   | E-mail администратора certbot                                          | None                   |
-| TTL           | Время жизни TXT записей                                                | 600                    |
-| SLEEP         | Время ожидания пока TXT запись подхватится публичными DNS серверами    | 30                     |
-| RETRIES       | Количество попыток при проверке TXT записи                             | 3                      |
-| OS_SHELL      | Shell операционной системы                                             | /bin/bash              |
-| LE_CONFIG_DIR | Путь к директории для хранения конфигураций и сертификатов LetsEncrypt | /etc/letsencrypt       |
-| CERTBOT       | Путь к certbot                                                         | /usr/local/bin/certbot |
+### Confidentiality
+You must safely keep API authentication data for security reason. That is why Python scripts compile into binary and authentication data keep encrypted.
 
-LE_CONFIG_DIR полезен в том случае, когда для некоторых ресурсов надо выписывать сертификаты по http challenge, а некоторые по dns challenge. В таком случае для dns challenge можно указать путь скажем /etc/letsencrypt-dns, тогда будет создана эта директория и аккаунты, конфиги, сертификаты для dns challenge будут храниться там.
-
-В TTL значение по-умолчанию установлено в 600. Это минимально допустимое значение.
-
-**[WEBSERVER]**
-
-| Function      | Description                                   | Default value             |
-|---------------|-----------------------------------------------|---------------------------|
-| ENABLED       | Флаг активации опции                          | false                     |
-| TEST_CONFIG   | Команда тестирования конфигуарции веб-сервера | /usr/sbin/nginx -t        |
-| RELOAD_CONFIG | Команда перезапуска веб-сервера               | /usr/sbin/nginx -s reload |
-
-**[SMTP]**
-
-| Function | Description                      | Default value |
-|----------|----------------------------------|---------------|
-| ENABLED  | Флаг активации опции             | false         |
-| SERVER   | Адрес сервера                    | 127.0.0.1     |
-| PORT     | Порт сервера                     | 25            |
-| USERNAME | Логин                            | None          |
-| PASSWORD | Пароль                           | None          |
-| FROM     | Исходящий адрес почты            | None          |
-| TO       | Реципиент (разделенные запятыми) | None          |
-
-Если MTA без аутентификации, то оставьте пустыми значения USERNAME и PASSWORD.
-
-**[POSTHOOK]**
-
-| Function | Description                  | Default value |
-|----------|------------------------------|---------------|
-| ENABLED  | Флаг активации опции         | false         |
-| SCRIPT   | Путь до исполняемого скрипта | None          |
-
-POSTHOOK позволяет в конце запустить ваш скрипт. Может пригодится, если например захотите синхронизировать сертификаты на другие сервера.
-
-### Конфиденциальность
-Если это даже ключи от API все равно по возможности надо их скрыть (все таки DNS может сильно покосить процессы организации). Отсюда и компиляция Python скриптов в бинарники, чтобы нельзя было модифицировать просто так и основное приложение на Golang, чтобы скрыть учетные данные и также защитить от модификации.
-
-### Тест
-Тестовый запуск:
+### Examples
+First run:
 ```
-./main -v -t
+$HOME/main -v -n
+```
+Test run:
+```
+$HOME/main -v -t
+```
+Renew certificates:
+```
+$HOME/main -v
 ```
 
 ### Очистка TXT
-Godaddy API по-умолчанию удаляет все найденные (попадающие под критерий поиска) записи. Так что можно не беспокоиться, что где-то останется лишняя запись _acme-challenge.
+Godaddy API by default removes all TXT records that matche "_acme-challenge". So don't worry about junk.
 
 ### Cron
 ```
 #m      #h      #dom    #mon    #dow    #command
-0 	0 	1 	* 	* 	/path/to/letsencrypt-godaddy/main
+0 	    0 	    1 	    * 	    * 	    /path/to/letsencrypt-godaddy/main
 ```
 
 ## Windows
-### Сборка и установка 
+### Build and install
 ```
-# установить certbot
-# установить golang
-go get gopkg.in/ini.v1
-go env -w GO111MODULE=auto
+# install certbot https://dl.eff.org/certbot-beta-installer-win32.exe
 pip install -r requirements.txt
 move config.sample.ini config.ini
-# подправить config.ini и main.go
+# setup config.ini
 python setup.py build
-mkdir c:\godaddy
-move build\* c:\godaddy
-move config.ini c:\godaddy
-# в системную переменную Path добавить путь c:\godaddy
+mkdir c:\letsencrypt-godaddy
+move build\* c:\letsencrypt-godaddy
+move config.ini c:\letsencrypt-godaddy
+c:\letsencrypt-godaddy\main.exe -a
 ```
-
-### Настройка
-Certbot for windows: [https://dl.eff.org/certbot-beta-installer-win32.exe](https://dl.eff.org/certbot-beta-installer-win32.exe)
-
-Пример настройки на Windows:
-
-**[GENERAL]**
-
-| Function      | Description                                                            | Value                         |
-|---------------|------------------------------------------------------------------------|-------------------------------|
-| ZONE          | Список доменных зон (разделенных запятыми)                             | None                          |
-| ADMIN_EMAIL   | E-mail администратора certbot                                          | None                          |
-| TTL           | Время жизни TXT записей                                                | 600                           |
-| SLEEP         | Время ожидания пока TXT запись подхватится публичными DNS серверами    | 30                            |
-| RETRIES       | Количество попыток при проверке TXT записи                             | 3                             |
-| OS_SHELL      | Shell операционной системы                                             | cmd                           |
-| LE_CONFIG_DIR | Путь к директории для хранения конфигураций и сертификатов LetsEncrypt | c:\\\\letsencrypt               |
-| CERTBOT       | Путь к certbot                                                         | c:\\\\certbot\\\\bin\\\\certbot.exe |
-
-**[WEBSERVER]**
-
-| Function      | Description                                   | Default value                    |
-|---------------|-----------------------------------------------|----------------------------------|
-| ENABLED       | Флаг активации опции                          | false                            |
-| TEST_CONFIG   | Команда тестирования конфигуарции веб-сервера | c:\\\\nginx\\\\sbin\\\\nginx -t        |
-| RELOAD_CONFIG | Команда перезапуска веб-сервера               | c:\\\\nginx\\\\sbin\\\\nginx -s reload |
-
-## Прекомпилированные бинарники
-Добавлены прекомпилированные бинарники для auth и clean на всякий случай. Основное приложение main придется собирать вручную командой "go build main.go".

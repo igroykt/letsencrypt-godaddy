@@ -1,37 +1,50 @@
 import os
 import sys
-from godaddypy import Client, Account
+import json
+import time
 from configparser import ConfigParser
 
-script_dir = os.path.dirname(os.path.realpath(__file__))
+from godaddypy import Client, Account
+from func import Func
 
-config = ConfigParser()
 try:
-    config.read(script_dir + "/config.ini")
+    if getattr(sys, 'frozen', False):
+        script_dir = os.path.dirname(sys.executable)
+    else:
+        script_dir = os.path.dirname(os.path.realpath(__file__))
+    config = ConfigParser()
+    config.read(script_dir + os.sep + "config.ini")
 except Exception as err:
-    raise Exception(f"Config parse: {err}")
+    raise SystemExit(f"Config parse: {err}")
 
 API_KEY = os.getenv('GDKEY')
 API_SECRET = os.getenv('GDSECRET')
 CERTBOT_DOMAIN = os.getenv('CERTBOT_DOMAIN')
+VERBOSE = os.getenv('VERBOSE')
 
-try:
-    my_acct = Account(api_key=API_KEY, api_secret=API_SECRET)
-    client = Client(my_acct)
-except Exception as err:
-    raise Exception(f"Account config error: {err}")
+def main():
+    try:
+        if VERBOSE:
+            print('Authorize API...')
+        my_acct = Account(api_key=API_KEY, api_secret=API_SECRET)
+        client = Client(my_acct)
+    except Exception as err:
+        if VERBOSE:
+            print(f"api.authorize: {err}")
+        raise Exception(f"api.authorize: {err}")
 
-def findTXTID(data):
-    ids = []
-    for record in data:
-        if "_acme-challenge" in record['name']:
-            ids.append(record['name'])
-    return ids
+    main_domain = Func.mainDomainTail(CERTBOT_DOMAIN)
 
-try:
-    records = client.get_records(CERTBOT_DOMAIN, record_type='TXT')
-    results = findTXTID(records)
-    for result in results:
-        client.delete_records(CERTBOT_DOMAIN, name=result)
-except Exception as err:
-    raise Exception(f"client.delete_records error: {err}")
+    try:
+        if VERBOSE:
+            print('Extract all TXT records...')
+        records = client.get_records(main_domain, record_type='TXT')
+        results = Func.GD_findTXTID(records)
+        for result in results:
+            client.delete_records(main_domain, name=result)
+    except Exception as err:
+        raise Exception(f"client.delete_records error: {err}")
+
+
+if __name__ == '__main__':
+    main()

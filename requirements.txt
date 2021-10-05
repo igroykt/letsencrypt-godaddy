@@ -1,4 +1,9 @@
 godaddypy
 dnspython>=2.0.0
 tld
+cryptography
 cx_Freeze
+pytest
+argparse
+slack-webhook
+telegram
