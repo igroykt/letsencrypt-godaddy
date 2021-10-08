@@ -24,7 +24,7 @@ $HOME/letsencrypt-godaddy/main -a
 ```
 Encryption key change on every build.
 
-### Настройка
+### Setup
 About APIKEY and APISECRET read here https://developer.godaddy.com/getstarted.
 
 Run "./main -a" to input API authentication data.
@@ -48,8 +48,8 @@ Renew certificates:
 $HOME/main -v
 ```
 
-### Очистка TXT
-Godaddy API by default removes all TXT records that matche "_acme-challenge". So don't worry about junk.
+### Clean of TXT
+Godaddy API by default removes all TXT records that match "_acme-challenge". So don't worry about junk.
 
 ### Cron
 ```
