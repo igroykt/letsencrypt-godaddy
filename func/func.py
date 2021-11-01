@@ -9,7 +9,6 @@ from datetime import date
 import shlex
 import time
 
-from nic_api.models import TXTRecord
 import cryptography
 from cryptography.fernet import Fernet
 from slack_webhook import Slack
@@ -204,20 +203,18 @@ class Func:
 
 
     @classmethod
-    # uname - username
-    # pwd - password
     # cid - client id
     # cs - client secret
-    def encrypt(self, ENC_KEY, ENC_DAT, uname, pwd, cid, cs):
-        #try:
+    def encrypt(self, ENC_KEY, ENC_DAT, cid, cs):
+        try:
             fernet = Fernet(ENC_KEY.encode())
-            string = f'{uname},{pwd},{cid},{cs}'
+            string = f'{cid},{cs}'
             encrypted = fernet.encrypt(string.encode())
             with open(ENC_DAT, 'wb') as f:
                 f.write(encrypted)
             return True
-        #except Exception as err:
-        #    raise Exception(f'encrypt: {err}')
+        except Exception as err:
+            raise Exception(f'encrypt: {err}')
 
 
     @classmethod
@@ -229,7 +226,7 @@ class Func:
             fernet = Fernet(ENC_KEY.encode())
             decrypted = fernet.decrypt(data)
             d = decrypted.decode().split(',')
-            return d[0], d[1], d[2], d[3]
+            return d[0], d[1]
         except Exception as err:
             raise Exception(f'decrypt: dont know how to decrypt {ENC_DAT} :(')
 

@@ -75,7 +75,7 @@ def notify(subject, msg, test=False):
 
 
 def main():
-    parser = argparse.ArgumentParser(description='LetsEncrypt NIC')
+    parser = argparse.ArgumentParser(description='LetsEncrypt GoDaddy')
     parser.add_argument('-v', dest='verbose', help='verbose output', action='store_true', required=False)
     parser.add_argument('-t', dest='test', help='test (not actual run)', action='store_true', required=False)
     parser.add_argument('-n', dest='new_cert', help='obtain new certificate', action='store_true', required=False)
@@ -85,7 +85,7 @@ def main():
     try:
         # save credentials
         if args.add_creds:
-            nicuser, nicpass, api_key, api_secret = Func.GD_inputCreds()
+            api_key, api_secret = Func.GD_inputCreds()
             Func.encrypt(ENC_KEY, ENC_DAT, api_key, api_secret)
             print('Credentials encrypted and saved! Exit...')
             sys.exit(0)

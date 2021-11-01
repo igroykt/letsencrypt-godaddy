@@ -22,7 +22,7 @@ writeFile.close()
 
 # Dependencies are automatically detected, but it might need fine tuning.
 build_exe_options = {
-    "packages": ["nic_api", "dns.resolver", "tld", "cryptography", "argparse", "slack_webhook", "telegram"],
+    "packages": ["godaddypy", "dns.resolver", "tld", "cryptography", "argparse", "slack_webhook", "telegram"],
     "build_exe": "build"
 }
 
