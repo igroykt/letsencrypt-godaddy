@@ -255,11 +255,11 @@ class Func:
     @classmethod
     def GD_findTXTID(self, data):
         try:
-            ids = []
+            names = []
             for record in data:
                 if "_acme-challenge" in record['name']:
-                    ids.append(record['name'])
-            return ids
+                    names.append(record['name'])
+            return names
         except Exception as err:
             raise Exception(f'GD_findTXTID: {err}')
 

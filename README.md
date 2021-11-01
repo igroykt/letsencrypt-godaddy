@@ -54,7 +54,7 @@ Godaddy API by default removes all TXT records that match "_acme-challenge". So 
 ### Cron
 ```
 #m      #h      #dom    #mon    #dow    #command
-0 	    0 	    1 	    * 	    * 	    /path/to/letsencrypt-godaddy/main
+0 	    0 	    1 	    * 	    * 	    $HOME/letsencrypt-godaddy/main
 ```
 
 ## Windows

@@ -62,7 +62,7 @@ def notify(subject, msg, test=False):
             sys.exit(err)
     if SLACKENABLED:
         try:
-            Func.slackSend(SLACKWEBHOOK, f'{subject} {msg}')
+            Func.slackSend(SLACKWEBHOOK, f'<!here> {subject} {msg}')
         except Exception as err:
             log.error(err)
             sys.exit(err)

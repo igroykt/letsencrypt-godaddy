@@ -11,9 +11,9 @@ def test_mainDomainTail():
     result = Func.mainDomainTail('top.level.mydomain.ru')
     assert result == 'mydomain.ru'
 
-def test_NIC_findTXTID():
-    result = Func.NIC_findTXTID([{'name':'_acme-challenge.google.com', 'id':'google.com'}])
-    assert result == ['google.com']
+def test_GD_findTXTID():
+    result = Func.GD_findTXTID([{'domain':'google.com','name':'_acme-challenge'}])
+    assert result == ['_acme-challenge']
 
 def test_call():
     code, out, err = Func.call('ls')
