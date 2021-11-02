@@ -52,4 +52,4 @@ def test_encrypt():
 
 def test_decrypt():
     client_id, client_secret = Func.decrypt(ENC_KEY, ENC_DAT)
-    assert username == 'testuser'
+    assert client_id == 'testid'
