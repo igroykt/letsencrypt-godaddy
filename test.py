@@ -47,9 +47,9 @@ script_dir = os.path.dirname(os.path.realpath(__file__))
 ENC_DAT = f'{script_dir}/test_enc.dat'
 
 def test_encrypt():
-    result = Func.encrypt(ENC_KEY, ENC_DAT, 'testuser', 'testpass', 'testid', 'testsecret')
+    result = Func.encrypt(ENC_KEY, ENC_DAT, 'testid', 'testsecret')
     assert isinstance(result, bool)
 
 def test_decrypt():
-    username, password, client_id, client_secret = Func.decrypt(ENC_KEY, ENC_DAT)
+    client_id, client_secret = Func.decrypt(ENC_KEY, ENC_DAT)
     assert username == 'testuser'
